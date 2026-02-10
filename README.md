@@ -1,60 +1,54 @@
-# BR Academy - Sistema de Automacao Completo (n8n)
+# BR Academy - Sistema de Automacao Completo (n8n + Z-API + AI Agents)
 
 > Primeiro e maior empresa de treinamento de Bar Staffs na Irlanda/Dublin.
 > Treinamento pratico e teorico para intercambistas conseguirem empregos em pubs, bares e restaurantes.
 
-## Visao Geral da Arquitetura
+## Visao Geral da Arquitetura (v2)
 
 ```
-                         +-----------------------+
-                         |   FONTES DE LEADS     |
-                         | Instagram / Facebook  |
-                         | WhatsApp / Website    |
-                         | Indicacoes / Eventos  |
-                         +-----------+-----------+
-                                     |
-                                     v
-                    +----------------+----------------+
-                    |  WORKFLOW 1: LEAD CAPTURE       |
-                    |  Webhook + Formulario + Redes   |
-                    +----------------+----------------+
-                                     |
-                                     v
-                    +----------------+----------------+
-                    |  WORKFLOW 2: LEAD PIPELINE      |
-                    |  Qualificacao + Score + Stages  |
-                    +----------------+----------------+
-                                     |
-                                     v
-                    +----------------+----------------+
-                    |  WORKFLOW 3: SALES AGENT (AI)   |
-                    |  Follow-up + Mensagens + Conv.  |
-                    +----------------+----------------+
-                                     |
-                                     v
-                    +----------------+----------------+
-                    |  WORKFLOW 4: ENROLLMENT         |
-                    |  Matricula + Pagamento + Docs   |
-                    +----------------+----------------+
-                                     |
-                                     v
-                    +----------------+----------------+
-                    |  WORKFLOW 5: COURSE OPS         |
-                    |  Pre/Dia/Pos Curso + Agenda     |
-                    +----------------+----------------+
-                                     |
-                                     v
-                    +----------------+----------------+
-                    |  WORKFLOW 6: FINANCIAL          |
-                    |  Controle + Relatorios          |
-                    +----------------+----------------+
-                                     |
-                                     v
-                    +----------------+----------------+
-                    |  LOVABLE WEB APP (opcional)     |
-                    |  Dashboard + CRM + Relatorios   |
-                    +----------------+----------------+
+     LEAD MANDA MENSAGEM NO WHATSAPP
+                  |
+                  v
+     +--[ 07 Z-API HUB ]--+     <-- Recebe TODAS as mensagens
+     |  Parse message      |
+     |  Identifica lead    |
+     |  Auto-registra novo |
+     +----------+----------+
+                |
+                v
+     +--[ 08 AI ROUTER ]----------+
+     |  Classifica intencao (AI)  |
+     |  Roteia para sub-agente    |
+     +---+----+----+----+----+---+
+         |    |    |    |    |
+         v    v    v    v    v
+       Sales Sched Pay  Sup  Alumni   <-- 5 sub-agentes especialistas
+       Agent Agent Agent Agent Agent       + Human Escalation
+         |    |    |    |    |
+         +----+----+----+----+
+                  |
+                  v
+     [Responde via Z-API + Atualiza Sheets]
+
+     ============ WORKFLOWS DE APOIO ============
+
+     [ 01 Lead Capture  ] - Leads de website/Instagram/Facebook
+     [ 02 Lead Pipeline ] - Scoring e qualificacao automatica
+     [ 04 Enrollment    ] - Matricula + Pagamento + Calendar
+     [ 05 Course Ops    ] - Mensagens automaticas do curso
+     [ 06 Financial     ] - Relatorios diarios e semanais
 ```
+
+### Sub-Agentes AI Especialistas
+
+| Agente | Persona | Funcao |
+|--------|---------|--------|
+| **Ana (Sales)** | Ex-barista brasileira, calorosa | Vender, qualificar, tratar objecoes |
+| **Scheduling** | Organizador | Datas, horarios, vagas disponiveis |
+| **Payment** | Facilitador | Formas de pagamento, parcelamento, PIX |
+| **Support** | Prestativo | Duvidas pre-curso, endereco, o que levar |
+| **Alumni** | Motivador | Pos-curso, emprego, indicacoes, upsell |
+| **Human Escalation** | -- | Escala para atendente humano |
 
 ## Etapas do Funil de Vendas (Lead Stages)
 
@@ -77,9 +71,11 @@
 ```
 BR-Academy/
   n8n-workflows/
-    01-lead-capture.json           # Captura de leads multicanal
-    02-lead-pipeline.json          # Pipeline e qualificacao
-    03-sales-agent.json            # Agente AI de vendas
+    07-zapi-whatsapp-hub.json      # NOVO: Hub central Z-API (recebe/envia WhatsApp)
+    08-ai-agent-router.json        # NOVO: Router AI + 5 sub-agentes especialistas
+    01-lead-capture.json           # Captura de leads (website/Instagram/Facebook)
+    02-lead-pipeline.json          # Pipeline e qualificacao automatica
+    03-sales-agent.json            # (LEGADO - substituido pelo 08)
     04-enrollment.json             # Matricula e documentos
     05-course-operations.json      # Operacoes do curso
     06-financial-tracking.json     # Controle financeiro
@@ -98,22 +94,21 @@ BR-Academy/
 
 | Servico | Uso | Node n8n |
 |---------|-----|----------|
+| **Z-API** | **WhatsApp central (envio/recebimento)** | **HTTP Request** |
+| **OpenAI GPT-4o** | **Router AI + 5 sub-agentes especialistas** | **OpenAI** |
 | Google Sheets | Planilhas de leads, matriculas, financeiro | Google Sheets |
-| WhatsApp Business API | Mensagens automaticas | HTTP Request / WhatsApp Business Cloud |
 | Instagram API | Captura de leads via DM | HTTP Request |
 | Gmail / SMTP | Emails automaticos | Gmail / Send Email |
 | Google Calendar | Agenda de cursos | Google Calendar |
-| Stripe / PayPal | Pagamentos | Stripe / HTTP Request |
-| OpenAI / Claude | Agente AI de vendas | OpenAI / HTTP Request |
+| Stripe | Pagamentos | Stripe Trigger |
 | Webhook | Entrada de dados externos | Webhook |
 
 ## Como Usar
 
-1. **Leia a arquitetura** - `docs/n8n-architecture-guide.md` (explica se e 1 fluxo ou 6, como se conectam, etc)
-2. Crie as Google Sheets conforme `google-sheets-templates/sheets-structure.md`
-3. Configure as credenciais no n8n (veja `docs/setup-guide.md`)
-4. Importe cada workflow JSON no n8n (sao 6 workflows independentes, veja o guia)
-5. Configure as credenciais em cada node com triangulo amarelo
-6. Ative os workflows na ordem (01 -> 06)
-7. Teste com os comandos curl do setup-guide.md
-8. Opcional: Deploy do Lovable app conforme `lovable-app/app-spec.md`
+1. **Configure Z-API** - `docs/zapi-setup-guide.md` (WhatsApp + AI agents)
+2. **Leia a arquitetura** - `docs/n8n-architecture-guide.md` (como os workflows se conectam)
+3. Crie as Google Sheets conforme `google-sheets-templates/sheets-structure.md`
+4. Configure credenciais no n8n (veja `docs/setup-guide.md`)
+5. Ative na ordem: **07 (Z-API Hub) -> 08 (AI Router) -> 01 -> 02 -> 04 -> 05 -> 06**
+6. Mande "Oi" no WhatsApp e teste a conversa com a Ana (AI)
+7. Opcional: Deploy do Lovable app conforme `lovable-app/app-spec.md`

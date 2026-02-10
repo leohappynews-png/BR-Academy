@@ -1,0 +1,283 @@
+{
+  "name": "BR Academy - 07 Z-API WhatsApp Hub",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "br-academy-zapi-webhook",
+        "options": {}
+      },
+      "id": "zapi-webhook-receiver",
+      "name": "Z-API - Receive Message",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Z-API Webhook Parser - Normaliza todas as mensagens recebidas\nconst raw = $input.first().json;\n\n// Z-API envia diferentes tipos de evento\nconst isMessage = raw.isStatusReply === false || raw.type === 'ReceivedCallback';\nconst isGroupMsg = raw.isGroup || false;\n\n// Ignorar mensagens de grupo e status\nif (isGroupMsg || !raw.phone) {\n  return [{ json: { skip: true, reason: 'group_or_no_phone' } }];\n}\n\n// Extrair dados da mensagem\nconst phone = raw.phone || raw.chatId?.replace('@c.us','') || '';\nconst senderName = raw.senderName || raw.chatName || raw.pushName || '';\nconst messageId = raw.messageId || raw.id?.id || '';\n\n// Tipo de mensagem\nlet messageType = 'text';\nlet messageContent = '';\nlet mediaUrl = '';\n\nif (raw.text?.message) {\n  messageType = 'text';\n  messageContent = raw.text.message;\n} else if (raw.image) {\n  messageType = 'image';\n  messageContent = raw.image.caption || '[Imagem recebida]';\n  mediaUrl = raw.image.imageUrl || '';\n} else if (raw.audio) {\n  messageType = 'audio';\n  messageContent = '[Audio recebido - transcricao pendente]';\n  mediaUrl = raw.audio.audioUrl || '';\n} else if (raw.document) {\n  messageType = 'document';\n  messageContent = raw.document.fileName || '[Documento recebido]';\n  mediaUrl = raw.document.documentUrl || '';\n} else if (raw.sticker) {\n  messageType = 'sticker';\n  messageContent = '[Sticker]';\n} else if (raw.listResponseMessage) {\n  messageType = 'list_response';\n  messageContent = raw.listResponseMessage.title || raw.listResponseMessage.description || '';\n} else if (raw.buttonsResponseMessage) {\n  messageType = 'button_response';\n  messageContent = raw.buttonsResponseMessage.selectedButtonId || '';\n} else {\n  messageContent = raw.body || raw.message || JSON.stringify(raw).substring(0, 200);\n}\n\nreturn [{\n  json: {\n    phone: phone,\n    sender_name: senderName,\n    message_id: messageId,\n    message_type: messageType,\n    message_content: messageContent,\n    media_url: mediaUrl,\n    timestamp: raw.momment || new Date().toISOString(),\n    raw_event: raw.type || 'message',\n    is_from_me: raw.fromMe || false\n  }\n}];"
+      },
+      "id": "code-parse-zapi",
+      "name": "Parse Z-API Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [470, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.skip }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "notEquals" }
+            },
+            {
+              "leftValue": "={{ $json.is_from_me }}",
+              "rightValue": false,
+              "operator": { "type": "boolean", "operation": "equals" }
+            }
+          ]
+        }
+      },
+      "id": "filter-valid-msg",
+      "name": "Valid Incoming Message?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [690, 300]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": { "__rl": true, "mode": "id", "value": "={{$env.GOOGLE_SHEET_LEADS_ID}}" },
+        "sheetName": { "__rl": true, "mode": "gid", "value": "0" },
+        "options": {
+          "filters": {
+            "filter": [
+              {
+                "lookupColumn": "phone",
+                "lookupValue": "={{ $json.phone }}"
+              }
+            ]
+          }
+        }
+      },
+      "id": "sheets-find-lead",
+      "name": "Find Lead by Phone",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [910, 300],
+      "credentials": {
+        "googleSheetsOAuth2Api": { "id": "CONFIGURE_ME", "name": "Google Sheets" }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Check if lead exists or is new\nconst existingLeads = $('Find Lead by Phone').all();\nconst message = $('Valid Incoming Message?').first().json;\n\nconst isNewLead = existingLeads.length === 0 || !existingLeads[0].json.lead_id;\n\nif (isNewLead) {\n  return [{\n    json: {\n      ...message,\n      is_new_lead: true,\n      lead_id: '',\n      lead_name: message.sender_name,\n      lead_stage: 'new_lead',\n      lead_score: 0\n    }\n  }];\n}\n\nconst lead = existingLeads[0].json;\nreturn [{\n  json: {\n    ...message,\n    is_new_lead: false,\n    lead_id: lead.lead_id,\n    lead_name: lead.name || message.sender_name,\n    lead_stage: lead.stage,\n    lead_score: lead.score || 0,\n    lead_email: lead.email || '',\n    lead_source: lead.source || 'whatsapp',\n    lead_nationality: lead.nationality || '',\n    lead_english_level: lead.english_level || '',\n    lead_preferred_date: lead.preferred_date || ''\n  }\n}];"
+      },
+      "id": "code-check-lead",
+      "name": "Check Lead Exists",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1130, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.is_new_lead }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "equals" }
+            }
+          ]
+        }
+      },
+      "id": "check-is-new",
+      "name": "Is New Lead?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1350, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Auto-register new lead from WhatsApp\nconst msg = $input.first().json;\n\nconst leadId = 'BR-' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '-' + Math.random().toString(36).substring(2, 8).toUpperCase();\n\nreturn [{\n  json: {\n    lead_id: leadId,\n    name: msg.sender_name || 'WhatsApp Lead',\n    email: '',\n    phone: msg.phone,\n    source: 'whatsapp',\n    nationality: '',\n    visa_type: '',\n    english_level: '',\n    preferred_date: '',\n    stage: 'new_lead',\n    score: 10,\n    priority: 'medium',\n    qualification_notes: 'Auto-registered via WhatsApp',\n    created_at: new Date().toISOString(),\n    updated_at: new Date().toISOString(),\n    next_follow_up: '',\n    notes: 'First message: ' + msg.message_content.substring(0, 200),\n    utm_source: 'whatsapp_organic',\n    utm_campaign: '',\n    lost_reason: '',\n    referred_by: '',\n    // Pass through for AI router\n    original_message: msg.message_content,\n    message_type: msg.message_type\n  }\n}];"
+      },
+      "id": "code-auto-register",
+      "name": "Auto-Register Lead",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1570, 200]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": { "__rl": true, "mode": "id", "value": "={{$env.GOOGLE_SHEET_LEADS_ID}}" },
+        "sheetName": { "__rl": true, "mode": "gid", "value": "0" },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {}
+        },
+        "options": {}
+      },
+      "id": "sheets-register-new",
+      "name": "Save New Lead",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1790, 200],
+      "credentials": {
+        "googleSheetsOAuth2Api": { "id": "CONFIGURE_ME", "name": "Google Sheets" }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": { "__rl": true, "mode": "id", "value": "={{$env.GOOGLE_SHEET_LEADS_ID}}" },
+        "sheetName": { "__rl": true, "mode": "gid", "value": "conversation_history" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "lead_id": "={{ $('Check Lead Exists').first().json.lead_id || $json.lead_id || '' }}",
+            "role": "user",
+            "message": "={{ $('Parse Z-API Message').first().json.message_content }}",
+            "channel": "whatsapp",
+            "timestamp": "={{ $now.toISO() }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "sheets-save-incoming-msg",
+      "name": "Save Incoming Message",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1570, 500],
+      "credentials": {
+        "googleSheetsOAuth2Api": { "id": "CONFIGURE_ME", "name": "Google Sheets" }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.N8N_WEBHOOK_BASE_URL}}/webhook/br-academy-ai-router",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"lead_id\": \"{{ $('Check Lead Exists').first().json.lead_id || $json.lead_id }}\",\n  \"phone\": \"{{ $('Parse Z-API Message').first().json.phone }}\",\n  \"name\": \"{{ $('Check Lead Exists').first().json.lead_name || $json.name }}\",\n  \"stage\": \"{{ $('Check Lead Exists').first().json.lead_stage || 'new_lead' }}\",\n  \"score\": {{ $('Check Lead Exists').first().json.lead_score || 0 }},\n  \"message\": \"{{ $('Parse Z-API Message').first().json.message_content }}\",\n  \"message_type\": \"{{ $('Parse Z-API Message').first().json.message_type }}\",\n  \"is_new_lead\": {{ $('Check Lead Exists').first().json.is_new_lead }},\n  \"channel\": \"whatsapp\"\n}",
+        "options": {}
+      },
+      "id": "http-call-ai-router",
+      "name": "Send to AI Router",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2010, 350]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "br-academy-zapi-send",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "zapi-send-webhook",
+      "name": "Webhook - Send via Z-API",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 700]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Z-API Send Message Router\n// Supports: text, image, document, buttons, list\nconst input = $input.first().json;\nconst phone = input.phone;\nconst instanceId = $env.ZAPI_INSTANCE_ID;\nconst token = $env.ZAPI_TOKEN;\nconst baseUrl = `https://api.z-api.io/instances/${instanceId}/token/${token}`;\n\nlet endpoint = '';\nlet body = {};\n\nswitch (input.type || 'text') {\n  case 'text':\n    endpoint = '/send-text';\n    body = {\n      phone: phone,\n      message: input.message\n    };\n    break;\n    \n  case 'image':\n    endpoint = '/send-image';\n    body = {\n      phone: phone,\n      image: input.media_url,\n      caption: input.message || ''\n    };\n    break;\n    \n  case 'document':\n    endpoint = '/send-document/pdf';\n    body = {\n      phone: phone,\n      document: input.media_url,\n      fileName: input.file_name || 'documento.pdf',\n      caption: input.message || ''\n    };\n    break;\n    \n  case 'buttons':\n    endpoint = '/send-button-list';\n    body = {\n      phone: phone,\n      message: input.message,\n      buttonList: {\n        buttons: (input.buttons || []).map(b => ({\n          id: b.id,\n          label: b.label\n        }))\n      }\n    };\n    break;\n    \n  case 'list':\n    endpoint = '/send-option-list';\n    body = {\n      phone: phone,\n      optionList: {\n        title: input.list_title || 'Opcoes',\n        message: input.message,\n        footer: input.footer || 'BR Academy',\n        buttonLabel: input.button_label || 'Ver opcoes',\n        options: input.options || []\n      }\n    };\n    break;\n\n  default:\n    endpoint = '/send-text';\n    body = { phone: phone, message: input.message };\n}\n\nreturn [{\n  json: {\n    url: baseUrl + endpoint,\n    body: body,\n    phone: phone,\n    type: input.type || 'text'\n  }\n}];"
+      },
+      "id": "code-zapi-router",
+      "name": "Z-API Send Router",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [470, 700]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Client-Token",
+              "value": "={{$env.ZAPI_CLIENT_TOKEN}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {}
+      },
+      "id": "http-zapi-send",
+      "name": "Z-API - Send",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [690, 700]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, zapiResponse: $json }) }}",
+        "options": {}
+      },
+      "id": "zapi-send-response",
+      "name": "Send Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [910, 700]
+    }
+  ],
+  "connections": {
+    "Z-API - Receive Message": {
+      "main": [[{ "node": "Parse Z-API Message", "type": "main", "index": 0 }]]
+    },
+    "Parse Z-API Message": {
+      "main": [[{ "node": "Valid Incoming Message?", "type": "main", "index": 0 }]]
+    },
+    "Valid Incoming Message?": {
+      "main": [
+        [{ "node": "Find Lead by Phone", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Find Lead by Phone": {
+      "main": [[{ "node": "Check Lead Exists", "type": "main", "index": 0 }]]
+    },
+    "Check Lead Exists": {
+      "main": [[
+        { "node": "Is New Lead?", "type": "main", "index": 0 },
+        { "node": "Save Incoming Message", "type": "main", "index": 0 }
+      ]]
+    },
+    "Is New Lead?": {
+      "main": [
+        [{ "node": "Auto-Register Lead", "type": "main", "index": 0 }],
+        [{ "node": "Send to AI Router", "type": "main", "index": 0 }]
+      ]
+    },
+    "Auto-Register Lead": {
+      "main": [[
+        { "node": "Save New Lead", "type": "main", "index": 0 }
+      ]]
+    },
+    "Save New Lead": {
+      "main": [[{ "node": "Send to AI Router", "type": "main", "index": 0 }]]
+    },
+    "Webhook - Send via Z-API": {
+      "main": [[{ "node": "Z-API Send Router", "type": "main", "index": 0 }]]
+    },
+    "Z-API Send Router": {
+      "main": [[{ "node": "Z-API - Send", "type": "main", "index": 0 }]]
+    },
+    "Z-API - Send": {
+      "main": [[{ "node": "Send Response", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "BR Academy" }, { "name": "Z-API" }, { "name": "WhatsApp Hub" }]
+}
