@@ -1,0 +1,82 @@
+{
+  "name": "BR Academy - Support Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            { "name": "request" },
+            { "name": "user_id" }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [-256, 0],
+      "id": "trigger-support",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "model": { "__rl": true, "mode": "list", "value": "gpt-4o-mini" },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [-80, 208],
+      "id": "llm-support",
+      "name": "OpenAI Chat Model",
+      "credentials": { "openAiApi": { "id": "5PEAWngkRN6csObe", "name": "ContaLEO" } }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.user_id }}",
+        "contextWindowLength": 35
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [64, 288],
+      "id": "memory-support",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1,
+      "position": [200, 288],
+      "id": "think-support",
+      "name": "Think"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.request }}",
+        "options": {
+          "systemMessage": "Voce e o agente de suporte da BR Academy, responsavel por ajudar alunos antes e durante o curso.\n\nInformacoes que voce conhece:\n\nSobre o local:\n- O curso acontece em Dublin city centre\n- O endereco exato sera enviado por WhatsApp 3 dias antes do curso\n- Facil acesso por transporte publico (bus e Luas)\n\nO que trazer:\n- Sapatos confortaveis (voce vai ficar em pe bastante tempo)\n- Caderno e caneta para anotacoes\n- Atitude positiva e vontade de aprender\n- NAO precisa trazer nada mais, todo material e fornecido\n\nO que esta incluso no curso:\n- Todos os materiais didaticos\n- Kit bartender completo (coqueteleira, dosador, colher bailarina, etc.)\n- Certificado de conclusao\n- Acesso ao grupo alumni no WhatsApp\n\nDress code:\n- Roupa casual mas apresentavel\n- Evitar chinelo ou roupa muito informal\n- Lembre-se que e um ambiente profissional de treinamento\n\nAlimentacao:\n- Snacks leves sao fornecidos durante o curso (cafe, biscoitos, frutas)\n- Ha intervalo para almoco (sugestoes de restaurantes proximos serao dadas no dia)\n- Trazer garrafa de agua e recomendado\n\nIdioma:\n- O curso e ministrado em portugues brasileiro\n- Materiais sao bilingues (portugues e ingles)\n- Termos tecnicos de bar sao ensinados em ingles (como sao usados na Irlanda)\n\nPolitica de cancelamento e reagendamento:\n- Ate 7 dias antes do curso: reembolso integral (100%)\n- Entre 3 e 7 dias antes: reembolso de 50%\n- Menos de 3 dias antes: sem reembolso, mas ganha credito para a proxima turma\n- Reagendamento gratuito ate 7 dias antes (sujeito a disponibilidade)\n\nRegras importantes:\n- NUNCA invente informacoes que voce nao tem.\n- Se nao souber a resposta, diga que vai verificar com a equipe.\n- Responda sempre em portugues brasileiro.\n- Seja prestativo, paciente e acolhedor."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [-32, 0],
+      "id": "agent-support",
+      "name": "Support Agent"
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [[{ "node": "Support Agent", "type": "main", "index": 0 }]]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [[{ "node": "Support Agent", "type": "ai_languageModel", "index": 0 }]]
+    },
+    "Simple Memory": {
+      "ai_memory": [[{ "node": "Support Agent", "type": "ai_memory", "index": 0 }]]
+    },
+    "Think": {
+      "ai_tool": [[{ "node": "Support Agent", "type": "ai_tool", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" }
+}
