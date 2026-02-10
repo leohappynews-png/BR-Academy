@@ -88,7 +88,8 @@ BR-Academy/
   lovable-app/
     app-spec.md                    # Especificacao do web app
   docs/
-    setup-guide.md                 # Guia de configuracao
+    n8n-architecture-guide.md      # LEIA PRIMEIRO: como os workflows funcionam
+    setup-guide.md                 # Guia de configuracao passo a passo
     message-templates.md           # Templates de mensagens
     integration-map.md             # Mapa de integracoes
 ```
@@ -108,8 +109,11 @@ BR-Academy/
 
 ## Como Usar
 
-1. Importe cada workflow JSON no seu n8n
-2. Configure as credenciais (veja `docs/setup-guide.md`)
-3. Crie as Google Sheets conforme `google-sheets-templates/sheets-structure.md`
-4. Ative os workflows na ordem (01 -> 06)
-5. Opcional: Deploy do Lovable app conforme `lovable-app/app-spec.md`
+1. **Leia a arquitetura** - `docs/n8n-architecture-guide.md` (explica se e 1 fluxo ou 6, como se conectam, etc)
+2. Crie as Google Sheets conforme `google-sheets-templates/sheets-structure.md`
+3. Configure as credenciais no n8n (veja `docs/setup-guide.md`)
+4. Importe cada workflow JSON no n8n (sao 6 workflows independentes, veja o guia)
+5. Configure as credenciais em cada node com triangulo amarelo
+6. Ative os workflows na ordem (01 -> 06)
+7. Teste com os comandos curl do setup-guide.md
+8. Opcional: Deploy do Lovable app conforme `lovable-app/app-spec.md`

@@ -76,18 +76,58 @@ Va em Settings -> Variables e configure:
 
 ---
 
-## Passo 4: Importar Workflows
+## Passo 4: Entender a Arquitetura e Importar Workflows
 
-No n8n:
-1. Va em Workflows -> Import from File
-2. Importe na ordem:
-   - `01-lead-capture.json`
-   - `02-lead-pipeline.json`
-   - `03-sales-agent.json`
-   - `04-enrollment.json`
-   - `05-course-operations.json`
-   - `06-financial-tracking.json`
-3. Em cada workflow, atualize as credenciais (clique nos nodes com icone de chave)
+> **LEIA PRIMEIRO:** `docs/n8n-architecture-guide.md` - Explica em detalhe como
+> os 6 workflows funcionam, porque sao independentes (e nao sub-fluxos), como
+> se conectam via Google Sheets, e o passo a passo com screenshots de como importar.
+
+### Resumo rapido:
+- Sao **6 workflows INDEPENDENTES** (cada um e um fluxo separado no n8n)
+- Eles **NAO se chamam entre si** como sub-fluxos
+- A conexao acontece pelo **Google Sheets** (um escreve, outro le)
+- Cada workflow tem seu **trigger proprio** (webhook ou schedule/cron)
+
+### Como importar (3 opcoes):
+
+**Opcao A - Import from File (recomendada):**
+1. No n8n, clique em **"+"** para criar um novo workflow vazio
+2. Clique nos **3 pontinhos (...)** no canto superior direito do canvas
+3. Clique em **"Import from File..."**
+4. Selecione o arquivo JSON
+5. Os nodes aparecem automaticamente no canvas
+6. Clique em **"Save"** (Ctrl+S)
+7. **Repita os passos 1-6 para cada um dos 6 arquivos**
+
+**Opcao B - Copiar e Colar (mais rapido):**
+1. Abra o arquivo JSON com qualquer editor de texto (VS Code, Notepad, etc)
+2. Ctrl+A (selecionar tudo) -> Ctrl+C (copiar)
+3. No n8n, crie um novo workflow vazio
+4. No canvas vazio, pressione Ctrl+V (colar)
+5. Os nodes aparecem automaticamente. Salve (Ctrl+S)
+
+**Opcao C - Via URL (se estiver no GitHub):**
+1. No n8n, "Import from URL" e cole a URL raw do JSON no GitHub
+
+### Importe nesta ordem:
+1. `01-lead-capture.json`
+2. `02-lead-pipeline.json`
+3. `03-sales-agent.json`
+4. `04-enrollment.json`
+5. `05-course-operations.json`
+6. `06-financial-tracking.json`
+
+### Configurar credenciais em cada workflow:
+Apos importar, cada workflow tera nodes com **triangulo amarelo de aviso**.
+Isso significa que a credencial precisa ser selecionada.
+
+1. Clique duas vezes no node com aviso
+2. Procure o campo "Credential" / "Credencial"
+3. Selecione a credencial correta (que voce criou no Passo 2)
+4. Salve o node
+
+Veja o mapa completo de quais credenciais cada node precisa em
+`docs/n8n-architecture-guide.md` (secao "Mapa de credenciais por workflow")
 
 ---
 
