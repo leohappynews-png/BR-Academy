@@ -30,13 +30,11 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [420, 400],
-      "credentials": {
-        "googleSheetsOAuth2Api": { "id": "CONFIGURE_ME", "name": "Google Sheets" }
-      }
+      "credentials": { "googleSheetsOAuth2Api": { "id": "CONFIGURE_ME", "name": "Google Sheets" } }
     },
     {
       "parameters": {
-        "jsCode": "// Build context for AI Router (intent classifier)\nconst incoming = $('Webhook - AI Router').first().json;\nconst history = $('Get Conversation History').all().map(h => h.json);\n\n// Last 10 messages for context\nconst recentHistory = history.slice(-10).map(h => `${h.role}: ${h.message}`).join('\\n');\n\nreturn [{\n  json: {\n    ...incoming,\n    conversation_history: recentHistory,\n    history_count: history.length\n  }\n}];"
+        "jsCode": "const incoming = $('Webhook - AI Router').first().json;\nconst history = $('Get Conversation History').all().map(h => h.json);\nconst recentHistory = history.slice(-10).map(h => `${h.role}: ${h.message}`).join('\\n');\n\nreturn [{ json: { ...incoming, conversation_history: recentHistory, history_count: history.length } }];"
       },
       "id": "code-build-router-context",
       "name": "Build Router Context",
@@ -46,31 +44,25 @@
     },
     {
       "parameters": {
-        "model": "gpt-4o-mini",
-        "messages": {
-          "values": [
-            {
-              "role": "system",
-              "content": "Voce e o ROTEADOR de intencoes da BR Academy. Sua UNICA funcao e classificar a intencao do lead e decidir qual agente especialista deve responder.\n\nAnalise a mensagem e o contexto do lead. Retorne APENAS um JSON valido, sem texto adicional:\n\n{\n  \"intent\": \"categoria\",\n  \"confidence\": 0.95,\n  \"agent\": \"nome_do_agente\",\n  \"urgency\": \"low|medium|high\",\n  \"needs_human\": false,\n  \"reasoning\": \"breve explicacao\"\n}\n\nCATEGORIAS DE INTENCAO -> AGENTE:\n\n1. \"greeting\" -> \"sales_agent\" (oi, hello, bom dia, etc)\n2. \"course_info\" -> \"sales_agent\" (perguntas sobre o curso, conteudo, duracao)\n3. \"pricing\" -> \"sales_agent\" (preco, valor, quanto custa, desconto)\n4. \"scheduling\" -> \"scheduling_agent\" (datas, horarios, proxima turma, agenda)\n5. \"payment\" -> \"payment_agent\" (como pagar, pix, parcelamento, comprovante)\n6. \"enrollment\" -> \"payment_agent\" (quero me matricular, inscrever, garantir vaga)\n7. \"pre_course\" -> \"support_agent\" (duvidas antes do curso, o que levar, endereco)\n8. \"post_course\" -> \"alumni_agent\" (certificado, emprego, feedback, indicacao)\n9. \"complaint\" -> \"human_escalation\" (reclamacao, problema, insatisfacao)\n10. \"unrelated\" -> \"redirect_agent\" (assunto nao relacionado ao curso)\n11. \"urgent\" -> \"human_escalation\" (emergencia, preciso falar com alguem)\n\nREGRAS:\n- Se confidence < 0.7 -> needs_human = true\n- Se o lead mencionou \"falar com alguem\" ou \"humano\" -> agent = \"human_escalation\"\n- Se stage = 'new_lead' e intent nao e claro -> agent = \"sales_agent\" (default)\n- Se stage = 'enrolled' ou 'pre_course' -> priorize support_agent\n- Se stage = 'completed' ou 'alumni' -> priorize alumni_agent"
-            },
-            {
-              "role": "user",
-              "content": "=Lead: {{ $json.name }} | Stage: {{ $json.stage }} | Score: {{ $json.score }} | Novo: {{ $json.is_new_lead }}\nHistorico ({{ $json.history_count }} msgs):\n{{ $json.conversation_history }}\n\nMensagem atual: {{ $json.message }}"
-            }
-          ]
-        },
-        "options": { "temperature": 0.1, "maxTokens": 200 }
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-4o-mini\",\n  \"temperature\": 0.1,\n  \"max_tokens\": 200,\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"Voce e o ROTEADOR de intencoes da BR Academy. Classifique a intencao e retorne APENAS JSON:\\n{\\\"intent\\\": \\\"categoria\\\", \\\"confidence\\\": 0.95, \\\"agent\\\": \\\"nome\\\", \\\"urgency\\\": \\\"low|medium|high\\\", \\\"needs_human\\\": false}\\n\\nINTENT -> AGENTE:\\n1. greeting/course_info/pricing -> sales_agent\\n2. scheduling -> scheduling_agent\\n3. payment/enrollment -> payment_agent\\n4. pre_course -> support_agent\\n5. post_course -> alumni_agent\\n6. complaint/urgent -> human_escalation\\n7. unrelated -> redirect_agent\\n\\nSe confidence < 0.7 -> needs_human=true. Se stage=enrolled -> support_agent. Se stage=completed/alumni -> alumni_agent.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Lead: {{ $json.name }} | Stage: {{ $json.stage }} | Score: {{ $json.score }} | Novo: {{ $json.is_new_lead }}\\nHistorico ({{ $json.history_count }} msgs):\\n{{ $json.conversation_history }}\\nMensagem: {{ $json.message }}\"\n    }\n  ]\n}",
+        "options": {}
       },
-      "id": "openai-router",
-      "name": "AI Intent Classifier",
-      "type": "n8n-nodes-base.openAi",
-      "typeVersion": 1.8,
+      "id": "http-openai-router",
+      "name": "OpenAI - Intent Classifier",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
       "position": [860, 400],
-      "credentials": { "openAiApi": { "id": "CONFIGURE_ME", "name": "OpenAI" } }
+      "credentials": { "httpHeaderAuth": { "id": "CONFIGURE_ME", "name": "OpenAI Bearer" } }
     },
     {
       "parameters": {
-        "jsCode": "// Parse router response and determine which agent to call\nconst response = $input.first().json;\nconst text = response.choices?.[0]?.message?.content || response.text || '{}';\nconst incoming = $('Build Router Context').first().json;\n\nlet routing = {};\ntry {\n  routing = JSON.parse(text.replace(/```json?/g, '').replace(/```/g, '').trim());\n} catch(e) {\n  routing = {\n    intent: 'greeting',\n    confidence: 0.5,\n    agent: 'sales_agent',\n    urgency: 'medium',\n    needs_human: false,\n    reasoning: 'Failed to parse, defaulting to sales'\n  };\n}\n\n// Force human escalation if confidence too low\nif (routing.confidence < 0.6) {\n  routing.needs_human = true;\n  routing.agent = 'human_escalation';\n}\n\nreturn [{\n  json: {\n    ...incoming,\n    intent: routing.intent,\n    confidence: routing.confidence,\n    target_agent: routing.agent,\n    urgency: routing.urgency,\n    needs_human: routing.needs_human,\n    routing_reasoning: routing.reasoning\n  }\n}];"
+        "jsCode": "const response = $input.first().json;\nconst text = response.choices?.[0]?.message?.content || '{}';\nconst incoming = $('Build Router Context').first().json;\n\nlet routing = {};\ntry {\n  routing = JSON.parse(text.replace(/```json?/g, '').replace(/```/g, '').trim());\n} catch(e) {\n  routing = { intent: 'greeting', confidence: 0.5, agent: 'sales_agent', urgency: 'medium', needs_human: false };\n}\n\nif (routing.confidence < 0.6) { routing.needs_human = true; routing.agent = 'human_escalation'; }\n\nreturn [{ json: { ...incoming, intent: routing.intent, confidence: routing.confidence, target_agent: routing.agent, urgency: routing.urgency, needs_human: routing.needs_human, routing_reasoning: routing.reasoning || '' } }];"
       },
       "id": "code-parse-routing",
       "name": "Parse Routing Decision",
@@ -106,147 +98,117 @@
     },
     {
       "parameters": {
-        "model": "gpt-4o",
-        "messages": {
-          "values": [
-            {
-              "role": "system",
-              "content": "Voce e o CLOSER de vendas da BR Academy - o MAIOR e PRIMEIRO centro de treinamento de Bar Staff da Irlanda, em Dublin.\n\n## SUA PERSONALIDADE\nVoce se chama Ana. Voce e brasileira, trabalhou em bares em Dublin por 3 anos, e agora ajuda outros brasileiros a conseguirem emprego. Voce e calorosa, direta e entende as dores do intercambista.\n\n## DADOS DO CURSO\n- Curso intensivo de Bar Staff (pratico + teorico)\n- Formato Weekend: Sab-Dom, 10h-17h (2 dias)\n- Formato Evening: Seg-Qui, 18h-21h (4 noites)\n- Local: Dublin City Centre (endereco enviado apos matricula)\n- Max 15 alunos/turma (atencao individual)\n- Preco: EUR 250 | Early Bird: EUR 199 (2 semanas antes)\n- Inclui: certificado reconhecido, material, kit bartender, acesso ao grupo alumni\n- Pagamento: Revolut, cartao, 2x sem juros, PIX (do Brasil)\n\n## O QUE O ALUNO APRENDE\n- Montagem e organizacao do bar\n- Tipos de cerveja irlandesa (Guinness, craft beers)\n- Cocktails classicos e modernos\n- Servico de cafe e barista basico\n- Atendimento ao cliente em ingles\n- Legislacao irlandesa de bebidas\n- Dicas praticas para conseguir emprego RAPIDO\n\n## PROVA SOCIAL\n- +500 alunos formados\n- 85% conseguem emprego em ate 30 dias\n- Nota media de avaliacao: 4.8/5\n- Parcerias com +20 pubs e restaurantes em Dublin\n- Depoimento: 'Fiz o curso sabado, segunda ja comecei a trabalhar' - Maria, SP\n- Depoimento: 'Melhor investimento do meu intercambio' - Pedro, MG\n\n## ESTRATEGIA DE VENDAS (SPIN + URGENCIA)\n1. SITUACAO: Pergunte sobre a situacao do lead (quando chegou, se ja trabalha, visto)\n2. PROBLEMA: Identifique a dor (dificuldade de achar emprego, ingles, nao sabe por onde comecar)\n3. IMPLICACAO: Mostre o custo de NAO agir (tempo perdido, dinheiro acabando, oportunidades passando)\n4. NECESSIDADE: Apresente o curso como solucao natural\n5. URGENCIA: 'Turma quase lotada', 'Early bird acaba em X dias', 'Ultimas vagas'\n\n## OBJECOES COMUNS\n- 'Ta caro': 'Entendo. Mas pensa assim: com 2-3 turnos no pub voce ja paga o curso. E sem ele, quanto tempo vai demorar pra conseguir esse primeiro turno?'\n- 'Vou pensar': 'Claro! So te aviso que essa turma ta quase lotando (max 15). Se quiser, posso reservar sua vaga por 24h sem compromisso.'\n- 'Meu ingles e fraco': 'Muitos dos nossos alunos comecaram assim! O curso te prepara justamente pra isso - voce aprende o vocabulario especifico do bar.'\n- 'Ja tenho experiencia': 'Otimo! O curso vai complementar com legislacao irlandesa e networking. E o certificado faz diferenca no CV aqui.'\n\n## REGRAS\n- Responda SEMPRE em portugues (exceto se lead escrever em ingles)\n- Maximo 3 emojis por mensagem\n- Sempre termine com uma PERGUNTA ou CTA claro\n- Se o lead quer se matricular, envie o link/instrucoes de pagamento\n- NUNCA invente informacoes que voce nao tem\n- Seja breve (max 4 paragrafos)\n\nRetorne APENAS a mensagem de resposta para o lead. No final, em uma linha separada, adicione:\n[STAGE:stage_name|FOLLOWUP:hours|SCORE_DELTA:+/-N]"
-            },
-            {
-              "role": "user",
-              "content": "=Lead: {{ $json.name }} | Stage: {{ $json.stage }} | Score: {{ $json.score }} | Intent: {{ $json.intent }}\nHistorico:\n{{ $json.conversation_history }}\n\nMensagem: {{ $json.message }}"
-            }
-          ]
-        },
-        "options": { "temperature": 0.7, "maxTokens": 600 }
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-4o\",\n  \"temperature\": 0.7,\n  \"max_tokens\": 600,\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"Voce e ANA, closer de vendas da BR Academy (MAIOR centro de treinamento de Bar Staff da Irlanda, Dublin). Brasileira, ex-barista, calorosa e direta.\\n\\nCURSO: Intensivo Bar Staff. Weekend (Sab-Dom 10h-17h) ou Evening (Seg-Qui 18h-21h). EUR 250 cheio / EUR 199 early bird. Max 15 alunos. Inclui certificado, material, kit bartender, grupo alumni.\\n\\nPAGAMENTO: Revolut, cartao, 2x sem juros, PIX (Brasil).\\n\\nPROVA SOCIAL: +500 formados, 85% empregados em 30 dias, nota 4.8/5, +20 pubs parceiros.\\n\\nESTRATEGIA (SPIN): 1) Situacao do lead 2) Identifique a dor 3) Custo de NAO agir 4) Curso como solucao 5) Urgencia (vagas limitadas).\\n\\nOBJECOES: 'Caro'->ROI em 2-3 turnos. 'Pensar'->reserva 24h sem compromisso. 'Ingles fraco'->curso prepara vocabulario. 'Tenho experiencia'->certificado+legislacao+networking.\\n\\nREGRAS: Portugues. Max 3 emojis. Termine com pergunta/CTA. Max 4 paragrafos.\\n\\nNo FINAL da resposta, em linha separada: [STAGE:stage|FOLLOWUP:hours|SCORE_DELTA:+/-N]\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Lead: {{ $json.name }} | Stage: {{ $json.stage }} | Score: {{ $json.score }}\\nHistorico:\\n{{ $json.conversation_history }}\\nMensagem: {{ $json.message }}\"\n    }\n  ]\n}",
+        "options": {}
       },
-      "id": "openai-sales",
+      "id": "http-openai-sales",
       "name": "Sales Agent (Ana)",
-      "type": "n8n-nodes-base.openAi",
-      "typeVersion": 1.8,
-      "position": [1540, 100],
-      "credentials": { "openAiApi": { "id": "CONFIGURE_ME", "name": "OpenAI" } }
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1540, 80],
+      "credentials": { "httpHeaderAuth": { "id": "CONFIGURE_ME", "name": "OpenAI Bearer" } }
     },
     {
       "parameters": {
-        "model": "gpt-4o",
-        "messages": {
-          "values": [
-            {
-              "role": "system",
-              "content": "Voce e o agente de AGENDAMENTO da BR Academy. Sua funcao e ajudar leads a escolher a melhor turma e data.\n\n## TURMAS DISPONIVEIS\n- Weekend Intensivo: Sabados e Domingos, 10h-17h\n- Evening: Segunda a Quinta, 18h-21h\n- Turmas abrem todo mes (1o e 3o fim de semana)\n- Max 15 alunos por turma\n\n## REGRAS\n- Consulte a agenda antes de confirmar datas (diga que vai verificar)\n- Pergunte a preferencia: fim de semana ou noturno?\n- Se a turma preferida esta cheia, ofereça a proxima\n- Crie urgencia: 'Essa turma so tem X vagas'\n- Sempre confirme: data, horario e tipo\n- Apos confirmar interesse na data, direcione para pagamento\n\nRetorne a mensagem + [STAGE:stage|FOLLOWUP:hours|SCORE_DELTA:+/-N]"
-            },
-            {
-              "role": "user",
-              "content": "=Lead: {{ $json.name }} | Stage: {{ $json.stage }}\nHistorico:\n{{ $json.conversation_history }}\nMensagem: {{ $json.message }}"
-            }
-          ]
-        },
-        "options": { "temperature": 0.6, "maxTokens": 400 }
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-4o\",\n  \"temperature\": 0.6,\n  \"max_tokens\": 400,\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"Agente de AGENDAMENTO da BR Academy. Ajude leads a escolher turma e data.\\n\\nTURMAS: Weekend (Sab-Dom 10h-17h) e Evening (Seg-Qui 18h-21h). Abrem 1o e 3o fim de semana de cada mes. Max 15 alunos.\\n\\nPergunte preferencia (weekend/evening). Crie urgencia (poucas vagas). Confirme data+horario+tipo. Direcione para pagamento.\\n\\nPortugues. Final: [STAGE:stage|FOLLOWUP:hours|SCORE_DELTA:+/-N]\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Lead: {{ $json.name }} | Stage: {{ $json.stage }}\\nHistorico:\\n{{ $json.conversation_history }}\\nMensagem: {{ $json.message }}\"\n    }\n  ]\n}",
+        "options": {}
       },
-      "id": "openai-scheduling",
+      "id": "http-openai-scheduling",
       "name": "Scheduling Agent",
-      "type": "n8n-nodes-base.openAi",
-      "typeVersion": 1.8,
-      "position": [1540, 250],
-      "credentials": { "openAiApi": { "id": "CONFIGURE_ME", "name": "OpenAI" } }
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1540, 220],
+      "credentials": { "httpHeaderAuth": { "id": "CONFIGURE_ME", "name": "OpenAI Bearer" } }
     },
     {
       "parameters": {
-        "model": "gpt-4o",
-        "messages": {
-          "values": [
-            {
-              "role": "system",
-              "content": "Voce e o agente de PAGAMENTO da BR Academy. Sua funcao e facilitar o processo de matricula e pagamento.\n\n## FORMAS DE PAGAMENTO\n- Revolut: enviar para @bracademy (confirma em minutos)\n- Transferencia AIB: IBAN IE00AIBK12345678 | BIC: AIBKIE2D\n- Cartao: link de pagamento Stripe (enviar quando solicitado)\n- PIX (Brasil): chave pix@bracademy.ie\n- Parcelamento: 2x sem juros (50% agora + 50% antes do curso)\n\n## PRECOS\n- Preco cheio: EUR 250\n- Early Bird (2 semanas antes): EUR 199\n- Desconto indicacao: 10% off para quem indica E quem e indicado\n- Combo: 2 amigos juntos = EUR 179 cada\n\n## PROCESSO\n1. Lead confirma interesse -> envie opcoes de pagamento\n2. Lead escolhe metodo -> envie dados especificos\n3. Lead envia comprovante -> confirme recebimento e prazo\n4. Confirmacao -> envie detalhes da matricula\n\n## REGRAS\n- Seja claro e objetivo com dados de pagamento\n- Se o lead hesitar no preco, ofereça parcelamento\n- Se pedir desconto alem do early bird, ofereça combo (trazer amigo)\n- Nunca pressione, mas crie urgencia natural ('vagas limitadas')\n- Apos confirmacao, parabenize com entusiasmo!\n\nRetorne a mensagem + [STAGE:stage|FOLLOWUP:hours|SCORE_DELTA:+/-N]"
-            },
-            {
-              "role": "user",
-              "content": "=Lead: {{ $json.name }} | Stage: {{ $json.stage }}\nHistorico:\n{{ $json.conversation_history }}\nMensagem: {{ $json.message }}"
-            }
-          ]
-        },
-        "options": { "temperature": 0.5, "maxTokens": 400 }
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-4o\",\n  \"temperature\": 0.5,\n  \"max_tokens\": 400,\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"Agente de PAGAMENTO da BR Academy. Facilite matricula e pagamento.\\n\\nPAGAMENTO: Revolut @bracademy | AIB IBAN IE00AIBK12345678 | Cartao via Stripe | PIX pix@bracademy.ie | 2x sem juros (50%+50%).\\n\\nPRECOS: EUR 250 cheio | EUR 199 early bird | 10% indicacao | EUR 179 combo (2 amigos).\\n\\nSeja claro com dados. Hesitou no preco -> parcelamento. Quer mais desconto -> combo. Apos pagamento -> parabenize!\\n\\nPortugues. Final: [STAGE:stage|FOLLOWUP:hours|SCORE_DELTA:+/-N]\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Lead: {{ $json.name }} | Stage: {{ $json.stage }}\\nHistorico:\\n{{ $json.conversation_history }}\\nMensagem: {{ $json.message }}\"\n    }\n  ]\n}",
+        "options": {}
       },
-      "id": "openai-payment",
+      "id": "http-openai-payment",
       "name": "Payment Agent",
-      "type": "n8n-nodes-base.openAi",
-      "typeVersion": 1.8,
-      "position": [1540, 400],
-      "credentials": { "openAiApi": { "id": "CONFIGURE_ME", "name": "OpenAI" } }
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1540, 360],
+      "credentials": { "httpHeaderAuth": { "id": "CONFIGURE_ME", "name": "OpenAI Bearer" } }
     },
     {
       "parameters": {
-        "model": "gpt-4o-mini",
-        "messages": {
-          "values": [
-            {
-              "role": "system",
-              "content": "Voce e o agente de SUPORTE da BR Academy. Ajuda alunos matriculados com duvidas pre-curso.\n\n## INFORMACOES DO CURSO\n- Endereco: [SERA_CONFIGURADO]\n- Como chegar: Luas (Red Line) ate Jervis, 5min a pe\n- O que trazer: documento (passaporte/IRP), caderno, caneta, sapato fechado\n- Roupa: confortavel, sapato fechado OBRIGATORIO\n- Alimentacao: temos pausa para almoco, tragam lanche ou ha restaurantes perto\n- Chegada: 15 minutos antes para check-in\n- Estacionamento: pago nas ruas proximas\n\n## FAQ\n- Posso levar acompanhante? Nao, so alunos matriculados\n- E se eu faltar um dia? Entre em contato para remarcar para proxima turma\n- Tem material online? Sim, enviamos apos o curso\n- Precisa saber ingles? Basico e suficiente, o curso ajuda com vocabulario\n\nSeja gentil e prestativo. Retorne a mensagem + [STAGE:stage|FOLLOWUP:hours|SCORE_DELTA:+/-N]"
-            },
-            {
-              "role": "user",
-              "content": "=Lead: {{ $json.name }} | Stage: {{ $json.stage }}\nHistorico:\n{{ $json.conversation_history }}\nMensagem: {{ $json.message }}"
-            }
-          ]
-        },
-        "options": { "temperature": 0.5, "maxTokens": 400 }
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-4o-mini\",\n  \"temperature\": 0.5,\n  \"max_tokens\": 400,\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"Agente de SUPORTE da BR Academy. Ajude alunos matriculados.\\n\\nINFO: Local Dublin City Centre (endereco apos matricula). Luas Red Line ate Jervis. Trazer: passaporte/IRP, caderno, caneta, sapato fechado. Chegar 15min antes.\\n\\nFAQ: Acompanhante nao. Faltou -> remarcar. Material online apos curso. Ingles basico OK.\\n\\nGentil e prestativo. Portugues. Final: [STAGE:stage|FOLLOWUP:hours|SCORE_DELTA:+/-N]\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Lead: {{ $json.name }} | Stage: {{ $json.stage }}\\nHistorico:\\n{{ $json.conversation_history }}\\nMensagem: {{ $json.message }}\"\n    }\n  ]\n}",
+        "options": {}
       },
-      "id": "openai-support",
+      "id": "http-openai-support",
       "name": "Support Agent",
-      "type": "n8n-nodes-base.openAi",
-      "typeVersion": 1.8,
-      "position": [1540, 550],
-      "credentials": { "openAiApi": { "id": "CONFIGURE_ME", "name": "OpenAI" } }
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1540, 500],
+      "credentials": { "httpHeaderAuth": { "id": "CONFIGURE_ME", "name": "OpenAI Bearer" } }
     },
     {
       "parameters": {
-        "model": "gpt-4o-mini",
-        "messages": {
-          "values": [
-            {
-              "role": "system",
-              "content": "Voce e o agente ALUMNI da BR Academy. Cuida do relacionamento com ex-alunos.\n\n## FUNCOES\n- Coletar feedback sobre o curso\n- Ajudar com dicas de emprego (onde aplicar, como fazer CV)\n- Promover cursos avancados (Cocktails Masterclass, Wine & Spirits)\n- Gerenciar programa de indicacoes (10% off para quem indica)\n- Convidar para o grupo alumni no WhatsApp\n- Compartilhar vagas de emprego\n\n## UPSELL\n- Cocktails Masterclass: EUR 150 (ex-alunos: EUR 120)\n- Wine & Spirits: EUR 130 (ex-alunos: EUR 99)\n- Coffee Barista: EUR 100 (ex-alunos: EUR 79)\n\n## DICAS DE EMPREGO\n- Melhores dias para entregar CV: Terca a Quinta\n- Melhor horario: 14h-16h (entre servicos)\n- Bairros com mais vagas: Temple Bar, Grafton St, Baggot St\n- Apps uteis: Indeed IE, Jobs.ie, Hostelworld Jobs\n- Networking: eventos da comunidade brasileira\n\nSeja motivador e celebre conquistas! Retorne a mensagem + [STAGE:alumni|FOLLOWUP:168|SCORE_DELTA:+0]"
-            },
-            {
-              "role": "user",
-              "content": "=Lead: {{ $json.name }} | Stage: {{ $json.stage }}\nHistorico:\n{{ $json.conversation_history }}\nMensagem: {{ $json.message }}"
-            }
-          ]
-        },
-        "options": { "temperature": 0.7, "maxTokens": 400 }
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-4o-mini\",\n  \"temperature\": 0.7,\n  \"max_tokens\": 400,\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"Agente ALUMNI da BR Academy. Cuide de ex-alunos.\\n\\nFUNCOES: Coletar feedback. Dicas emprego (Ter-Qui 14-16h, Temple Bar/Grafton/Baggot, Indeed/Jobs.ie). Upsell: Cocktails EUR120, Wine EUR99, Barista EUR79 (precos alumni). Indicacao 10% off.\\n\\nMotivador, celebre conquistas! Portugues. Final: [STAGE:alumni|FOLLOWUP:168|SCORE_DELTA:+0]\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Lead: {{ $json.name }} | Stage: {{ $json.stage }}\\nHistorico:\\n{{ $json.conversation_history }}\\nMensagem: {{ $json.message }}\"\n    }\n  ]\n}",
+        "options": {}
       },
-      "id": "openai-alumni",
+      "id": "http-openai-alumni",
       "name": "Alumni Agent",
-      "type": "n8n-nodes-base.openAi",
-      "typeVersion": 1.8,
-      "position": [1540, 700],
-      "credentials": { "openAiApi": { "id": "CONFIGURE_ME", "name": "OpenAI" } }
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1540, 640],
+      "credentials": { "httpHeaderAuth": { "id": "CONFIGURE_ME", "name": "OpenAI Bearer" } }
     },
     {
       "parameters": {
-        "jsCode": "// Human escalation - notify admin and send holding message\nconst data = $input.first().json;\n\nreturn [{\n  json: {\n    ...data,\n    ai_response: `${data.name}, entendo! Vou passar voce para nossa equipe agora mesmo. Alguem vai te responder em alguns minutos. Obrigada pela paciencia! \\n\\n- Ana, BR Academy`,\n    metadata_line: '[STAGE:' + data.stage + '|FOLLOWUP:1|SCORE_DELTA:+0]',\n    notify_admin: true,\n    escalation_reason: data.routing_reasoning || 'Low confidence or explicit request'\n  }\n}];"
+        "jsCode": "const data = $input.first().json;\nreturn [{ json: { ...data, ai_response: `${data.name}, entendo! Vou te passar para nossa equipe agora. Alguem vai te responder em minutos!\\n\\n- Ana, BR Academy`, metadata_line: '[STAGE:' + data.stage + '|FOLLOWUP:1|SCORE_DELTA:+0]', notify_admin: true, escalation_reason: data.routing_reasoning || 'Low confidence or explicit request' } }];"
       },
       "id": "code-human-escalation",
       "name": "Human Escalation",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1540, 850]
+      "position": [1540, 780]
     },
     {
       "parameters": {
-        "jsCode": "// Redirect unrelated messages\nconst data = $input.first().json;\n\nreturn [{\n  json: {\n    ...data,\n    ai_response: `Oi ${data.name}! Aqui e a Ana da BR Academy. Nosso foco e treinamento de Bar Staff para voce trabalhar em pubs e bares aqui na Irlanda!\\n\\nPosso te ajudar com:\\n- Informacoes sobre o curso\\n- Datas e horarios\\n- Precos e formas de pagamento\\n- Duvidas sobre trabalhar em bares\\n\\nEm que posso te ajudar?`,\n    metadata_line: '[STAGE:' + data.stage + '|FOLLOWUP:24|SCORE_DELTA:-5]'\n  }\n}];"
+        "jsCode": "const data = $input.first().json;\nreturn [{ json: { ...data, ai_response: `Oi ${data.name}! Aqui e a Ana da BR Academy. Nosso foco e treinamento de Bar Staff pra voce trabalhar em pubs e bares na Irlanda!\\n\\nPosso te ajudar com:\\n- Info sobre o curso\\n- Datas e horarios\\n- Precos e pagamento\\n\\nEm que posso te ajudar?`, metadata_line: '[STAGE:' + data.stage + '|FOLLOWUP:24|SCORE_DELTA:-5]' } }];"
       },
       "id": "code-redirect",
       "name": "Redirect Agent",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1540, 1000]
+      "position": [1540, 920]
     },
     {
       "parameters": {
-        "jsCode": "// Merge all agent responses and extract metadata\nconst input = $input.first().json;\n\nlet fullResponse = '';\nlet metadata = '';\n\n// Check if response comes from OpenAI or code node\nif (input.choices) {\n  fullResponse = input.choices[0]?.message?.content || '';\n} else if (input.ai_response) {\n  fullResponse = input.ai_response;\n  metadata = input.metadata_line || '';\n}\n\n// Extract metadata line [STAGE:x|FOLLOWUP:y|SCORE_DELTA:z]\nif (!metadata) {\n  const metaMatch = fullResponse.match(/\\[STAGE:(\\w+)\\|FOLLOWUP:(\\d+)\\|SCORE_DELTA:([+-]?\\d+)\\]/);\n  if (metaMatch) {\n    metadata = metaMatch[0];\n    fullResponse = fullResponse.replace(metaMatch[0], '').trim();\n  }\n}\n\nlet stage = '';\nlet followUpHours = 24;\nlet scoreDelta = 0;\n\nconst parsed = metadata.match(/STAGE:(\\w+)\\|FOLLOWUP:(\\d+)\\|SCORE_DELTA:([+-]?\\d+)/);\nif (parsed) {\n  stage = parsed[1];\n  followUpHours = parseInt(parsed[2]);\n  scoreDelta = parseInt(parsed[3]);\n}\n\n// Get original context\nconst context = $('Build Router Context').first().json;\n\nreturn [{\n  json: {\n    lead_id: context.lead_id,\n    phone: context.phone,\n    name: context.name,\n    response_message: fullResponse,\n    suggested_stage: stage || context.stage,\n    follow_up_hours: followUpHours,\n    score_delta: scoreDelta,\n    current_score: context.score,\n    new_score: Math.min(100, Math.max(0, (parseInt(context.score) || 0) + scoreDelta)),\n    target_agent: context.target_agent,\n    intent: context.intent,\n    notify_admin: input.notify_admin || false,\n    escalation_reason: input.escalation_reason || ''\n  }\n}];"
+        "jsCode": "const input = $input.first().json;\n\nlet fullResponse = '';\nlet metadata = '';\n\nif (input.choices) {\n  fullResponse = input.choices[0]?.message?.content || '';\n} else if (input.ai_response) {\n  fullResponse = input.ai_response;\n  metadata = input.metadata_line || '';\n}\n\nif (!metadata) {\n  const metaMatch = fullResponse.match(/\\[STAGE:(\\w+)\\|FOLLOWUP:(\\d+)\\|SCORE_DELTA:([+-]?\\d+)\\]/);\n  if (metaMatch) {\n    metadata = metaMatch[0];\n    fullResponse = fullResponse.replace(metaMatch[0], '').trim();\n  }\n}\n\nlet stage = '', followUpHours = 24, scoreDelta = 0;\nconst parsed = metadata.match(/STAGE:(\\w+)\\|FOLLOWUP:(\\d+)\\|SCORE_DELTA:([+-]?\\d+)/);\nif (parsed) { stage = parsed[1]; followUpHours = parseInt(parsed[2]); scoreDelta = parseInt(parsed[3]); }\n\nconst context = $('Build Router Context').first().json;\n\nreturn [{ json: {\n  lead_id: context.lead_id, phone: context.phone, name: context.name,\n  response_message: fullResponse,\n  suggested_stage: stage || context.stage,\n  follow_up_hours: followUpHours,\n  score_delta: scoreDelta,\n  new_score: Math.min(100, Math.max(0, (parseInt(context.score) || 0) + scoreDelta)),\n  target_agent: context.target_agent, intent: context.intent,\n  notify_admin: input.notify_admin || false,\n  escalation_reason: input.escalation_reason || ''\n} }];"
       },
       "id": "code-merge-responses",
       "name": "Process Agent Response",
@@ -260,14 +222,14 @@
         "url": "={{$env.N8N_WEBHOOK_BASE_URL}}/webhook/br-academy-zapi-send",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"phone\": \"{{ $json.phone }}\",\n  \"message\": \"{{ $json.response_message.replace(/\"/g, '\\\\\"').replace(/\\n/g, '\\\\n') }}\",\n  \"type\": \"text\"\n}",
+        "jsonBody": "={\n  \"phone\": \"{{ $json.phone }}\",\n  \"message\": {{ JSON.stringify($json.response_message) }},\n  \"type\": \"text\"\n}",
         "options": {}
       },
       "id": "http-send-zapi",
       "name": "Send via Z-API",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [2040, 300]
+      "position": [2040, 280]
     },
     {
       "parameters": {
@@ -290,7 +252,7 @@
       "name": "Save AI Response",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
-      "position": [2040, 450],
+      "position": [2040, 430],
       "credentials": { "googleSheetsOAuth2Api": { "id": "CONFIGURE_ME", "name": "Google Sheets" } }
     },
     {
@@ -315,7 +277,7 @@
       "name": "Update Lead Data",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
-      "position": [2040, 600],
+      "position": [2040, 580],
       "credentials": { "googleSheetsOAuth2Api": { "id": "CONFIGURE_ME", "name": "Google Sheets" } }
     },
     {
@@ -341,19 +303,19 @@
         "url": "={{$env.N8N_WEBHOOK_BASE_URL}}/webhook/br-academy-zapi-send",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"phone\": \"{{$env.BR_ACADEMY_ADMIN_PHONE}}\",\n  \"message\": \"ESCALACAO HUMANA NECESSARIA\\n\\nLead: {{ $json.name }}\\nTelefone: {{ $json.phone }}\\nMotivo: {{ $json.escalation_reason }}\\nUltima msg: {{ $('Build Router Context').first().json.message }}\\n\\nResponda diretamente pelo WhatsApp.\",\n  \"type\": \"text\"\n}",
+        "jsonBody": "={\n  \"phone\": \"{{$env.BR_ACADEMY_ADMIN_PHONE}}\",\n  \"message\": \"ESCALACAO HUMANA\\n\\nLead: {{ $json.name }}\\nTel: {{ $json.phone }}\\nMotivo: {{ $json.escalation_reason }}\\nMsg: {{ $('Build Router Context').first().json.message }}\",\n  \"type\": \"text\"\n}",
         "options": {}
       },
       "id": "http-notify-admin-wa",
-      "name": "Notify Admin via WhatsApp",
+      "name": "Notify Admin WhatsApp",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [2480, 350]
+      "position": [2480, 340]
     },
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ JSON.stringify({ success: true, agent: $('Process Agent Response').first().json.target_agent, intent: $('Process Agent Response').first().json.intent }) }}",
+        "responseBody": "={{ JSON.stringify({ success: true, agent: $('Process Agent Response').first().json.target_agent }) }}",
         "options": {}
       },
       "id": "webhook-router-response",
@@ -371,9 +333,9 @@
       "main": [[{ "node": "Build Router Context", "type": "main", "index": 0 }]]
     },
     "Build Router Context": {
-      "main": [[{ "node": "AI Intent Classifier", "type": "main", "index": 0 }]]
+      "main": [[{ "node": "OpenAI - Intent Classifier", "type": "main", "index": 0 }]]
     },
-    "AI Intent Classifier": {
+    "OpenAI - Intent Classifier": {
       "main": [[{ "node": "Parse Routing Decision", "type": "main", "index": 0 }]]
     },
     "Parse Routing Decision": {
@@ -390,27 +352,13 @@
         [{ "node": "Redirect Agent", "type": "main", "index": 0 }]
       ]
     },
-    "Sales Agent (Ana)": {
-      "main": [[{ "node": "Process Agent Response", "type": "main", "index": 0 }]]
-    },
-    "Scheduling Agent": {
-      "main": [[{ "node": "Process Agent Response", "type": "main", "index": 0 }]]
-    },
-    "Payment Agent": {
-      "main": [[{ "node": "Process Agent Response", "type": "main", "index": 0 }]]
-    },
-    "Support Agent": {
-      "main": [[{ "node": "Process Agent Response", "type": "main", "index": 0 }]]
-    },
-    "Alumni Agent": {
-      "main": [[{ "node": "Process Agent Response", "type": "main", "index": 0 }]]
-    },
-    "Human Escalation": {
-      "main": [[{ "node": "Process Agent Response", "type": "main", "index": 0 }]]
-    },
-    "Redirect Agent": {
-      "main": [[{ "node": "Process Agent Response", "type": "main", "index": 0 }]]
-    },
+    "Sales Agent (Ana)": { "main": [[{ "node": "Process Agent Response", "type": "main", "index": 0 }]] },
+    "Scheduling Agent": { "main": [[{ "node": "Process Agent Response", "type": "main", "index": 0 }]] },
+    "Payment Agent": { "main": [[{ "node": "Process Agent Response", "type": "main", "index": 0 }]] },
+    "Support Agent": { "main": [[{ "node": "Process Agent Response", "type": "main", "index": 0 }]] },
+    "Alumni Agent": { "main": [[{ "node": "Process Agent Response", "type": "main", "index": 0 }]] },
+    "Human Escalation": { "main": [[{ "node": "Process Agent Response", "type": "main", "index": 0 }]] },
+    "Redirect Agent": { "main": [[{ "node": "Process Agent Response", "type": "main", "index": 0 }]] },
     "Process Agent Response": {
       "main": [[
         { "node": "Send via Z-API", "type": "main", "index": 0 },
@@ -421,14 +369,13 @@
     },
     "Needs Admin?": {
       "main": [
-        [{ "node": "Notify Admin via WhatsApp", "type": "main", "index": 0 }],
+        [{ "node": "Notify Admin WhatsApp", "type": "main", "index": 0 }],
         [{ "node": "Router Response", "type": "main", "index": 0 }]
       ]
     },
-    "Notify Admin via WhatsApp": {
+    "Notify Admin WhatsApp": {
       "main": [[{ "node": "Router Response", "type": "main", "index": 0 }]]
     }
   },
-  "settings": { "executionOrder": "v1" },
-  "tags": [{ "name": "BR Academy" }, { "name": "AI Router" }, { "name": "Sub-Agents" }]
+  "settings": { "executionOrder": "v1" }
 }
