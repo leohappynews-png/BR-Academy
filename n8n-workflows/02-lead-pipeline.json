@@ -1,0 +1,241 @@
+{
+  "name": "BR Academy - 02 Lead Pipeline & Qualification",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "hours", "hoursInterval": 1 }]
+        }
+      },
+      "id": "schedule-pipeline",
+      "name": "Schedule - Every Hour",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": { "__rl": true, "mode": "id", "value": "={{$env.GOOGLE_SHEET_LEADS_ID}}" },
+        "sheetName": { "__rl": true, "mode": "gid", "value": "0" },
+        "options": {
+          "filters": {
+            "filter": [
+              {
+                "lookupColumn": "stage",
+                "lookupValue": "new_lead"
+              }
+            ]
+          }
+        }
+      },
+      "id": "sheets-get-new-leads",
+      "name": "Get New Leads",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [470, 300],
+      "credentials": {
+        "googleSheetsOAuth2Api": { "id": "CONFIGURE_ME", "name": "Google Sheets" }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Lead Scoring System for BR Academy\nconst leads = $input.all();\nconst scoredLeads = [];\n\nfor (const lead of leads) {\n  const data = lead.json;\n  let score = 0;\n  let qualificationNotes = [];\n\n  // --- CONTACT INFO SCORING ---\n  if (data.phone && data.phone.trim() !== '') {\n    score += 15;\n    qualificationNotes.push('+15 phone provided');\n  }\n  if (data.email && data.email.trim() !== '') {\n    score += 10;\n    qualificationNotes.push('+10 email provided');\n  }\n\n  // --- SOURCE SCORING ---\n  const sourceScores = {\n    'referral': 25,\n    'website': 15,\n    'whatsapp': 20,\n    'instagram': 10,\n    'facebook': 10\n  };\n  const srcScore = sourceScores[data.source] || 5;\n  score += srcScore;\n  qualificationNotes.push(`+${srcScore} source: ${data.source}`);\n\n  // --- PROFILE COMPLETENESS ---\n  if (data.nationality && data.nationality.trim() !== '') {\n    score += 5;\n    qualificationNotes.push('+5 nationality provided');\n  }\n  if (data.visa_type && data.visa_type.trim() !== '') {\n    score += 10;\n    qualificationNotes.push('+10 visa type provided');\n  }\n  if (data.english_level && data.english_level.trim() !== '') {\n    score += 5;\n    qualificationNotes.push('+5 english level provided');\n  }\n  if (data.preferred_date && data.preferred_date.trim() !== '') {\n    score += 15;\n    qualificationNotes.push('+15 preferred date (high intent)');\n  }\n\n  // --- INTENT KEYWORDS IN NOTES ---\n  const notes = (data.notes || '').toLowerCase();\n  const highIntentWords = ['matricula', 'inscrever', 'pagar', 'pagamento', 'quero', 'enroll', 'register', 'pay', 'start', 'comecar'];\n  const medIntentWords = ['preco', 'valor', 'quanto', 'price', 'cost', 'date', 'data', 'quando', 'when'];\n  \n  if (highIntentWords.some(w => notes.includes(w))) {\n    score += 20;\n    qualificationNotes.push('+20 high intent keywords');\n  } else if (medIntentWords.some(w => notes.includes(w))) {\n    score += 10;\n    qualificationNotes.push('+10 medium intent keywords');\n  }\n\n  // --- DETERMINE STAGE ---\n  let newStage = 'new_lead';\n  let priority = 'low';\n  \n  if (score >= 70) {\n    newStage = 'qualified';\n    priority = 'high';\n  } else if (score >= 40) {\n    newStage = 'contacted';\n    priority = 'medium';\n  }\n\n  scoredLeads.push({\n    json: {\n      ...data,\n      score: score,\n      stage: newStage,\n      priority: priority,\n      qualification_notes: qualificationNotes.join(' | '),\n      updated_at: new Date().toISOString()\n    }\n  });\n}\n\nreturn scoredLeads;"
+      },
+      "id": "code-scoring",
+      "name": "Lead Scoring",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [690, 300]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": { "__rl": true, "mode": "id", "value": "={{$env.GOOGLE_SHEET_LEADS_ID}}" },
+        "sheetName": { "__rl": true, "mode": "gid", "value": "0" },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": ["lead_id"]
+        },
+        "options": {}
+      },
+      "id": "sheets-update-scored",
+      "name": "Update Lead Score",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [910, 300],
+      "credentials": {
+        "googleSheetsOAuth2Api": { "id": "CONFIGURE_ME", "name": "Google Sheets" }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.priority }}",
+              "value2": "high",
+              "operation": "equals"
+            }
+          ]
+        }
+      },
+      "id": "check-priority",
+      "name": "High Priority?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1130, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v18.0/{{$env.WHATSAPP_PHONE_ID}}/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $json.phone }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"Oi {{ $json.name }}! Aqui e a equipe da BR Academy. Vimos que voce tem interesse no nosso curso de Bar Staff! Posso te ajudar com mais informacoes? Temos turmas abrindo em breve! \\n\\nQual a melhor data para voce?\"\n  }\n}"
+      },
+      "id": "whatsapp-high-priority",
+      "name": "WhatsApp - Priority Follow-up",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1350, 200]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{$env.BR_ACADEMY_ADMIN_EMAIL}}",
+        "subject": "=🔥 Lead QUENTE: {{ $json.name }} (Score: {{ $json.score }})",
+        "message": "=<h2>Novo Lead de Alta Prioridade!</h2><table><tr><td><strong>Nome:</strong></td><td>{{ $json.name }}</td></tr><tr><td><strong>Email:</strong></td><td>{{ $json.email }}</td></tr><tr><td><strong>Telefone:</strong></td><td>{{ $json.phone }}</td></tr><tr><td><strong>Score:</strong></td><td>{{ $json.score }}/100</td></tr><tr><td><strong>Fonte:</strong></td><td>{{ $json.source }}</td></tr><tr><td><strong>Data preferida:</strong></td><td>{{ $json.preferred_date }}</td></tr><tr><td><strong>Notas:</strong></td><td>{{ $json.qualification_notes }}</td></tr></table><p><strong>Acao recomendada:</strong> Ligar para este lead o mais rapido possivel!</p>",
+        "options": {}
+      },
+      "id": "email-admin-alert",
+      "name": "Gmail - Admin Alert",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [1350, 400],
+      "credentials": {
+        "gmailOAuth2": { "id": "CONFIGURE_ME", "name": "Gmail" }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "hours", "hoursInterval": 24 }]
+        }
+      },
+      "id": "schedule-stale",
+      "name": "Schedule - Daily Stale Check",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [250, 600]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": { "__rl": true, "mode": "id", "value": "={{$env.GOOGLE_SHEET_LEADS_ID}}" },
+        "sheetName": { "__rl": true, "mode": "gid", "value": "0" },
+        "options": {}
+      },
+      "id": "sheets-get-all-leads",
+      "name": "Get All Active Leads",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [470, 600],
+      "credentials": {
+        "googleSheetsOAuth2Api": { "id": "CONFIGURE_ME", "name": "Google Sheets" }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Identify stale leads that need follow-up\nconst leads = $input.all();\nconst now = new Date();\nconst staleLeads = [];\n\nconst staleThresholds = {\n  'new_lead': 24,       // 24 hours\n  'contacted': 48,      // 48 hours\n  'qualified': 24,      // 24 hours\n  'proposal_sent': 72,  // 72 hours\n  'negotiation': 48     // 48 hours\n};\n\nfor (const lead of leads) {\n  const data = lead.json;\n  const stage = data.stage;\n  const threshold = staleThresholds[stage];\n  \n  if (!threshold) continue; // Skip enrolled, in_course, etc.\n  if (stage === 'lost') continue;\n  \n  const updatedAt = new Date(data.updated_at);\n  const hoursSinceUpdate = (now - updatedAt) / (1000 * 60 * 60);\n  \n  if (hoursSinceUpdate >= threshold) {\n    staleLeads.push({\n      json: {\n        ...data,\n        hours_stale: Math.round(hoursSinceUpdate),\n        threshold_hours: threshold,\n        action_needed: stage === 'new_lead' ? 'first_contact' :\n                       stage === 'contacted' ? 'follow_up' :\n                       stage === 'qualified' ? 'send_proposal' :\n                       stage === 'proposal_sent' ? 'check_decision' :\n                       'negotiate'\n      }\n    });\n  }\n}\n\nreturn staleLeads.length > 0 ? staleLeads : [{ json: { no_stale: true } }];"
+      },
+      "id": "code-stale-check",
+      "name": "Check Stale Leads",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [690, 600]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.no_stale }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "notEquals" }
+            }
+          ]
+        }
+      },
+      "id": "filter-has-stale",
+      "name": "Has Stale Leads?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [910, 600]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{$env.BR_ACADEMY_ADMIN_EMAIL}}",
+        "subject": "=📋 BR Academy - {{ $input.all().length }} leads precisam de acao",
+        "message": "=<h2>Relatorio de Leads Parados</h2><p>Os seguintes leads estao sem acao ha mais tempo do que o recomendado:</p><table border='1' cellpadding='8'><tr><th>Nome</th><th>Stage</th><th>Horas parado</th><th>Acao necessaria</th></tr>{{ $input.all().map(item => `<tr><td>${item.json.name}</td><td>${item.json.stage}</td><td>${item.json.hours_stale}h</td><td>${item.json.action_needed}</td></tr>`).join('') }}</table>",
+        "options": {}
+      },
+      "id": "email-stale-report",
+      "name": "Gmail - Stale Leads Report",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [1130, 600],
+      "credentials": {
+        "gmailOAuth2": { "id": "CONFIGURE_ME", "name": "Gmail" }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule - Every Hour": {
+      "main": [[{ "node": "Get New Leads", "type": "main", "index": 0 }]]
+    },
+    "Get New Leads": {
+      "main": [[{ "node": "Lead Scoring", "type": "main", "index": 0 }]]
+    },
+    "Lead Scoring": {
+      "main": [[{ "node": "Update Lead Score", "type": "main", "index": 0 }]]
+    },
+    "Update Lead Score": {
+      "main": [[{ "node": "High Priority?", "type": "main", "index": 0 }]]
+    },
+    "High Priority?": {
+      "main": [
+        [
+          { "node": "WhatsApp - Priority Follow-up", "type": "main", "index": 0 },
+          { "node": "Gmail - Admin Alert", "type": "main", "index": 0 }
+        ],
+        []
+      ]
+    },
+    "Schedule - Daily Stale Check": {
+      "main": [[{ "node": "Get All Active Leads", "type": "main", "index": 0 }]]
+    },
+    "Get All Active Leads": {
+      "main": [[{ "node": "Check Stale Leads", "type": "main", "index": 0 }]]
+    },
+    "Check Stale Leads": {
+      "main": [[{ "node": "Has Stale Leads?", "type": "main", "index": 0 }]]
+    },
+    "Has Stale Leads?": {
+      "main": [
+        [{ "node": "Gmail - Stale Leads Report", "type": "main", "index": 0 }],
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    { "name": "BR Academy" },
+    { "name": "Pipeline" }
+  ]
+}

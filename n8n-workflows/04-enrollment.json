@@ -1,0 +1,229 @@
+{
+  "name": "BR Academy - 04 Enrollment & Documents",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "br-academy-enroll",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-enroll",
+      "name": "Webhook - Enrollment",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "events": ["checkout.session.completed"],
+        "options": {}
+      },
+      "id": "stripe-webhook",
+      "name": "Stripe Trigger",
+      "type": "n8n-nodes-base.stripeTrigger",
+      "typeVersion": 1,
+      "position": [250, 520],
+      "credentials": {
+        "stripeApi": { "id": "CONFIGURE_ME", "name": "Stripe" }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normalize enrollment data from different sources\nconst input = $input.first().json;\nlet enrollmentData = {};\n\n// Check if coming from Stripe\nif (input.object === 'checkout.session') {\n  const metadata = input.metadata || {};\n  enrollmentData = {\n    lead_id: metadata.lead_id || '',\n    name: input.customer_details?.name || metadata.name || '',\n    email: input.customer_details?.email || metadata.email || '',\n    phone: metadata.phone || '',\n    amount_paid: (input.amount_total || 0) / 100,\n    currency: input.currency?.toUpperCase() || 'EUR',\n    payment_method: 'stripe',\n    payment_id: input.payment_intent || input.id,\n    payment_status: 'paid',\n    course_date: metadata.course_date || '',\n    course_type: metadata.course_type || 'weekend'\n  };\n} else {\n  // Manual enrollment\n  enrollmentData = {\n    lead_id: input.lead_id || '',\n    name: input.name || '',\n    email: input.email || '',\n    phone: input.phone || '',\n    amount_paid: input.amount || 0,\n    currency: input.currency || 'EUR',\n    payment_method: input.payment_method || 'manual',\n    payment_id: input.payment_id || '',\n    payment_status: input.payment_status || 'pending',\n    course_date: input.course_date || '',\n    course_type: input.course_type || 'weekend'\n  };\n}\n\nenrollmentData.enrollment_id = 'ENR-' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '-' + Math.random().toString(36).substring(2,7).toUpperCase();\nenrollmentData.enrolled_at = new Date().toISOString();\nenrollmentData.status = 'active';\nenrollmentData.certificate_sent = false;\nenrollmentData.documents_sent = false;\n\nreturn [{ json: enrollmentData }];"
+      },
+      "id": "code-normalize-enrollment",
+      "name": "Normalize Enrollment",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 400]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": { "__rl": true, "mode": "id", "value": "={{$env.GOOGLE_SHEET_ENROLLMENT_ID}}" },
+        "sheetName": { "__rl": true, "mode": "gid", "value": "0" },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {}
+        },
+        "options": {}
+      },
+      "id": "sheets-add-enrollment",
+      "name": "Add to Enrollments Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [720, 400],
+      "credentials": {
+        "googleSheetsOAuth2Api": { "id": "CONFIGURE_ME", "name": "Google Sheets" }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": { "__rl": true, "mode": "id", "value": "={{$env.GOOGLE_SHEET_LEADS_ID}}" },
+        "sheetName": { "__rl": true, "mode": "gid", "value": "0" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "lead_id": "={{ $json.lead_id }}",
+            "stage": "enrolled",
+            "updated_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": ["lead_id"]
+        },
+        "options": {}
+      },
+      "id": "sheets-update-lead-enrolled",
+      "name": "Update Lead to Enrolled",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [940, 250],
+      "credentials": {
+        "googleSheetsOAuth2Api": { "id": "CONFIGURE_ME", "name": "Google Sheets" }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": { "__rl": true, "mode": "id", "value": "={{$env.GOOGLE_SHEET_FINANCIAL_ID}}" },
+        "sheetName": { "__rl": true, "mode": "gid", "value": "0" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "date": "={{ $now.format('yyyy-MM-dd') }}",
+            "type": "income",
+            "category": "course_enrollment",
+            "description": "=Matricula {{ $json.name }} - {{ $json.course_type }}",
+            "amount": "={{ $json.amount_paid }}",
+            "currency": "={{ $json.currency }}",
+            "payment_method": "={{ $json.payment_method }}",
+            "payment_id": "={{ $json.payment_id }}",
+            "enrollment_id": "={{ $json.enrollment_id }}",
+            "lead_id": "={{ $json.lead_id }}",
+            "status": "={{ $json.payment_status }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "sheets-add-financial",
+      "name": "Add Financial Record",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [940, 440],
+      "credentials": {
+        "googleSheetsOAuth2Api": { "id": "CONFIGURE_ME", "name": "Google Sheets" }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.email }}",
+        "subject": "BR Academy - Confirmacao de Matricula! Bem-vindo(a)!",
+        "message": "=<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'><div style='background: #1a1a2e; color: white; padding: 30px; text-align: center;'><h1>BR Academy</h1><p>Confirmacao de Matricula</p></div><div style='padding: 30px; background: #f9f9f9;'><h2>Parabens, {{ $json.name }}!</h2><p>Sua matricula foi confirmada com sucesso! Voce esta oficialmente inscrito(a) no curso de <strong>Bar Staff</strong> da BR Academy.</p><h3>Detalhes da Matricula:</h3><table style='width:100%; border-collapse: collapse;'><tr style='border-bottom: 1px solid #ddd;'><td style='padding: 8px;'><strong>ID Matricula:</strong></td><td>{{ $json.enrollment_id }}</td></tr><tr style='border-bottom: 1px solid #ddd;'><td style='padding: 8px;'><strong>Tipo de Curso:</strong></td><td>{{ $json.course_type === 'weekend' ? 'Intensivo de Fim de Semana (Sab-Dom)' : 'Noturno (Seg-Qui)' }}</td></tr><tr style='border-bottom: 1px solid #ddd;'><td style='padding: 8px;'><strong>Data do Curso:</strong></td><td>{{ $json.course_date }}</td></tr><tr style='border-bottom: 1px solid #ddd;'><td style='padding: 8px;'><strong>Valor Pago:</strong></td><td>{{ $json.currency }} {{ $json.amount_paid }}</td></tr></table><h3>Proximos Passos:</h3><ol><li>Voce recebera os documentos do curso em breve</li><li>2 dias antes, enviaremos instrucoes detalhadas</li><li>No dia, chegue 15min antes com documento de identidade</li></ol><h3>O que trazer:</h3><ul><li>Documento de identidade (passaporte ou IRP card)</li><li>Caderno e caneta</li><li>Roupa confortavel (sapato fechado obrigatorio)</li></ul><p>Qualquer duvida, estamos a disposicao!</p></div><div style='background: #1a1a2e; color: white; padding: 15px; text-align: center;'><p>BR Academy | Dublin, Ireland</p></div></div>",
+        "options": {}
+      },
+      "id": "email-enrollment-confirmation",
+      "name": "Gmail - Enrollment Confirmation",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [940, 630],
+      "credentials": {
+        "gmailOAuth2": { "id": "CONFIGURE_ME", "name": "Gmail" }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v18.0/{{$env.WHATSAPP_PHONE_ID}}/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $json.phone }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"Oi {{ $json.name }}! Sua matricula na BR Academy foi CONFIRMADA! \\n\\nID: {{ $json.enrollment_id }}\\nCurso: {{ $json.course_type === 'weekend' ? 'Fim de Semana' : 'Noturno' }}\\nData: {{ $json.course_date }}\\n\\nVoce vai receber os documentos e instrucoes por email.\\n\\nBem-vindo(a) a familia BR Academy! Estamos ansiosos para te receber!\"\n  }\n}"
+      },
+      "id": "whatsapp-enrollment-confirm",
+      "name": "WhatsApp - Enrollment Confirm",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1160, 440]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "calendar": { "__rl": true, "mode": "id", "value": "={{$env.GOOGLE_CALENDAR_ID}}" },
+        "summary": "=BR Academy - {{ $json.name }} - Curso {{ $json.course_type }}",
+        "description": "=Aluno: {{ $json.name }}\nEmail: {{ $json.email }}\nTelefone: {{ $json.phone }}\nEnrollment ID: {{ $json.enrollment_id }}\nTipo: {{ $json.course_type }}",
+        "start": "={{ $json.course_date }}",
+        "end": "={{ $json.course_date }}",
+        "options": {
+          "attendees": ["={{ $json.email }}"]
+        }
+      },
+      "id": "calendar-add-event",
+      "name": "Google Calendar - Add Course",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.2,
+      "position": [1160, 250],
+      "credentials": {
+        "googleCalendarOAuth2Api": { "id": "CONFIGURE_ME", "name": "Google Calendar" }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, enrollment_id: $('Normalize Enrollment').first().json.enrollment_id }) }}",
+        "options": {}
+      },
+      "id": "webhook-enroll-response",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1380, 300]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{$env.BR_ACADEMY_ADMIN_EMAIL}}",
+        "subject": "=Nova Matricula! {{ $json.name }} - {{ $json.enrollment_id }}",
+        "message": "=<h2>Nova Matricula Confirmada!</h2><p><strong>{{ $json.name }}</strong> acaba de se matricular!</p><table><tr><td>Enrollment ID:</td><td>{{ $json.enrollment_id }}</td></tr><tr><td>Curso:</td><td>{{ $json.course_type }}</td></tr><tr><td>Data:</td><td>{{ $json.course_date }}</td></tr><tr><td>Valor:</td><td>{{ $json.currency }} {{ $json.amount_paid }}</td></tr><tr><td>Pagamento:</td><td>{{ $json.payment_method }} ({{ $json.payment_status }})</td></tr></table>",
+        "options": {}
+      },
+      "id": "email-admin-new-enrollment",
+      "name": "Gmail - Admin Notification",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [1160, 630],
+      "credentials": {
+        "gmailOAuth2": { "id": "CONFIGURE_ME", "name": "Gmail" }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook - Enrollment": {
+      "main": [[{ "node": "Normalize Enrollment", "type": "main", "index": 0 }]]
+    },
+    "Stripe Trigger": {
+      "main": [[{ "node": "Normalize Enrollment", "type": "main", "index": 0 }]]
+    },
+    "Normalize Enrollment": {
+      "main": [[{ "node": "Add to Enrollments Sheet", "type": "main", "index": 0 }]]
+    },
+    "Add to Enrollments Sheet": {
+      "main": [[
+        { "node": "Update Lead to Enrolled", "type": "main", "index": 0 },
+        { "node": "Add Financial Record", "type": "main", "index": 0 },
+        { "node": "Gmail - Enrollment Confirmation", "type": "main", "index": 0 },
+        { "node": "WhatsApp - Enrollment Confirm", "type": "main", "index": 0 },
+        { "node": "Google Calendar - Add Course", "type": "main", "index": 0 },
+        { "node": "Webhook Response", "type": "main", "index": 0 },
+        { "node": "Gmail - Admin Notification", "type": "main", "index": 0 }
+      ]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    { "name": "BR Academy" },
+    { "name": "Enrollment" }
+  ]
+}

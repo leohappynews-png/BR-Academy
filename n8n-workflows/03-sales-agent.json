@@ -1,0 +1,320 @@
+{
+  "name": "BR Academy - 03 Sales Agent (AI)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "br-academy-chat",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-chat",
+      "name": "Webhook - Incoming Message",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "hours", "hoursInterval": 6 }]
+        }
+      },
+      "id": "schedule-followup",
+      "name": "Schedule - Follow-up Check",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [250, 600]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": { "__rl": true, "mode": "id", "value": "={{$env.GOOGLE_SHEET_LEADS_ID}}" },
+        "sheetName": { "__rl": true, "mode": "gid", "value": "0" },
+        "options": {
+          "filters": {
+            "filter": [
+              {
+                "lookupColumn": "lead_id",
+                "lookupValue": "={{ $json.lead_id }}"
+              }
+            ]
+          }
+        }
+      },
+      "id": "sheets-get-lead",
+      "name": "Get Lead Context",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [470, 300],
+      "credentials": {
+        "googleSheetsOAuth2Api": { "id": "CONFIGURE_ME", "name": "Google Sheets" }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": { "__rl": true, "mode": "id", "value": "={{$env.GOOGLE_SHEET_LEADS_ID}}" },
+        "sheetName": { "__rl": true, "mode": "gid", "value": "conversation_history" },
+        "options": {
+          "filters": {
+            "filter": [
+              {
+                "lookupColumn": "lead_id",
+                "lookupValue": "={{ $json.lead_id }}"
+              }
+            ]
+          }
+        }
+      },
+      "id": "sheets-get-history",
+      "name": "Get Conversation History",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [470, 480],
+      "credentials": {
+        "googleSheetsOAuth2Api": { "id": "CONFIGURE_ME", "name": "Google Sheets" }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build conversation context for AI agent\nconst lead = $('Get Lead Context').first().json;\nconst history = $('Get Conversation History').all().map(h => h.json);\nconst incomingMessage = $('Webhook - Incoming Message').first().json.message;\n\nconst conversationHistory = history.map(h => \n  `${h.role}: ${h.message}`\n).join('\\n');\n\nreturn [{\n  json: {\n    lead: lead,\n    incoming_message: incomingMessage,\n    conversation_history: conversationHistory,\n    lead_stage: lead.stage,\n    lead_score: lead.score\n  }\n}];"
+      },
+      "id": "code-build-context",
+      "name": "Build AI Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [690, 380]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "Voce e o agente de vendas da BR Academy, o primeiro e maior centro de treinamento de Bar Staff na Irlanda, baseado em Dublin.\n\n## SOBRE A BR ACADEMY\n- Treinamento pratico e teorico para trabalhar em pubs, bares e restaurantes na Irlanda\n- Publico principal: intercambistas brasileiros (e outros latinos) em Dublin\n- Diferenciais: professores experientes, networking com empregadores, alta taxa de empregabilidade\n- Curso inclui: tecnicas de bar, cocktails, cervejas irlandesas, cafe, atendimento em ingles, legislacao\n\n## INFORMACOES DO CURSO\n- Duracao: 2 dias intensivos (sabado e domingo) OU 4 noites (segunda a quinta)\n- Horarios: Sabado/Domingo 10h-17h OU Noites 18h-21h\n- Local: Dublin City Centre\n- Preco: EUR 250 (preco cheio) / EUR 199 (early bird - 2 semanas antes)\n- Inclui: certificado, material didatico, kit de bartender basico\n- Turmas: maximo 15 alunos por turma\n- Proximas turmas: consultar agenda atualizada\n\n## FORMAS DE PAGAMENTO\n- Transferencia bancaria (Revolut/AIB)\n- Cartao de credito/debito\n- Parcelamento: 2x sem juros\n- PIX (para quem ainda esta no Brasil)\n\n## OBJETIVO\nSeu objetivo e CONVERTER leads em alunos matriculados. Seja:\n1. Acolhedor e empático - muitos estao em situacao nova (intercambio)\n2. Consultivo - entenda a situacao do lead antes de vender\n3. Urgente mas nao agressivo - crie senso de oportunidade\n4. Informativo - responda todas duvidas com precisao\n5. Proativo - sugira proximos passos claros\n\n## ESTRATEGIAS DE CONVERSAO\n- Se o lead pergunta preco: diga o valor mas destaque o ROI (emprego rapido paga o curso em dias)\n- Se hesita: ofereça depoimentos de ex-alunos, mencione vagas disponiveis\n- Se pede desconto: ofereça early bird ou indique um amigo (ambos ganham 10% off)\n- Se nao responde: faca follow-up gentil em 24h, 48h e 7 dias\n- Se diz que vai pensar: pergunte qual a duvida especifica, ofereça tirar duvidas por call\n\n## REGRAS\n- Sempre responda em PORTUGUES (a menos que o lead escreva em ingles)\n- Nunca invente informacoes\n- Se nao souber algo, diga que vai verificar com a equipe\n- Sempre termine com um CTA (call to action) claro\n- Registre o stage correto do lead\n- Use emojis com moderacao (maximo 2-3 por mensagem)"
+            },
+            {
+              "role": "user",
+              "content": "=Contexto do lead:\nNome: {{ $json.lead.name }}\nStage atual: {{ $json.lead_stage }}\nScore: {{ $json.lead_score }}\nFonte: {{ $json.lead.source }}\nNacionalidade: {{ $json.lead.nationality }}\nNivel de ingles: {{ $json.lead.english_level }}\n\nHistorico da conversa:\n{{ $json.conversation_history }}\n\nNova mensagem do lead:\n{{ $json.incoming_message }}\n\nResponda a mensagem do lead de forma natural e estrategica. Alem da resposta, retorne um JSON no final com:\n{\"suggested_stage\": \"stage_name\", \"follow_up_hours\": 24, \"action_items\": [\"item1\"]}"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.7,
+          "maxTokens": 800
+        }
+      },
+      "id": "openai-agent",
+      "name": "AI Sales Agent",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.8,
+      "position": [910, 380],
+      "credentials": {
+        "openAiApi": { "id": "CONFIGURE_ME", "name": "OpenAI" }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse AI response and extract structured data\nconst response = $input.first().json;\nconst fullText = response.choices?.[0]?.message?.content || response.text || '';\n\n// Try to extract JSON from response\nlet suggestedStage = '';\nlet followUpHours = 24;\nlet actionItems = [];\nlet cleanMessage = fullText;\n\nconst jsonMatch = fullText.match(/\\{[\\s\\S]*\"suggested_stage\"[\\s\\S]*\\}/);\nif (jsonMatch) {\n  try {\n    const parsed = JSON.parse(jsonMatch[0]);\n    suggestedStage = parsed.suggested_stage || '';\n    followUpHours = parsed.follow_up_hours || 24;\n    actionItems = parsed.action_items || [];\n    cleanMessage = fullText.replace(jsonMatch[0], '').trim();\n  } catch(e) {}\n}\n\nconst lead = $('Build AI Context').first().json.lead;\n\nreturn [{\n  json: {\n    lead_id: lead.lead_id,\n    response_message: cleanMessage,\n    suggested_stage: suggestedStage,\n    follow_up_hours: followUpHours,\n    action_items: actionItems,\n    phone: lead.phone,\n    email: lead.email,\n    name: lead.name\n  }\n}];"
+      },
+      "id": "code-parse-response",
+      "name": "Parse AI Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1130, 380]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": { "__rl": true, "mode": "id", "value": "={{$env.GOOGLE_SHEET_LEADS_ID}}" },
+        "sheetName": { "__rl": true, "mode": "gid", "value": "conversation_history" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "lead_id": "={{ $json.lead_id }}",
+            "role": "assistant",
+            "message": "={{ $json.response_message }}",
+            "timestamp": "={{ $now.toISO() }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "sheets-save-response",
+      "name": "Save to History",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1350, 280],
+      "credentials": {
+        "googleSheetsOAuth2Api": { "id": "CONFIGURE_ME", "name": "Google Sheets" }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": { "__rl": true, "mode": "id", "value": "={{$env.GOOGLE_SHEET_LEADS_ID}}" },
+        "sheetName": { "__rl": true, "mode": "gid", "value": "0" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "lead_id": "={{ $json.lead_id }}",
+            "stage": "={{ $json.suggested_stage }}",
+            "updated_at": "={{ $now.toISO() }}",
+            "next_follow_up": "={{ $now.plus({ hours: $json.follow_up_hours }).toISO() }}"
+          },
+          "matchingColumns": ["lead_id"]
+        },
+        "options": {}
+      },
+      "id": "sheets-update-stage",
+      "name": "Update Lead Stage",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1350, 480],
+      "credentials": {
+        "googleSheetsOAuth2Api": { "id": "CONFIGURE_ME", "name": "Google Sheets" }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v18.0/{{$env.WHATSAPP_PHONE_ID}}/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $json.phone }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"{{ $json.response_message }}\"\n  }\n}"
+      },
+      "id": "whatsapp-reply",
+      "name": "WhatsApp - Send Reply",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1560, 380]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, message: $json.response_message }) }}",
+        "options": {}
+      },
+      "id": "webhook-chat-response",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1560, 200]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": { "__rl": true, "mode": "id", "value": "={{$env.GOOGLE_SHEET_LEADS_ID}}" },
+        "sheetName": { "__rl": true, "mode": "gid", "value": "0" },
+        "options": {}
+      },
+      "id": "sheets-followup-leads",
+      "name": "Get Leads for Follow-up",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [470, 600],
+      "credentials": {
+        "googleSheetsOAuth2Api": { "id": "CONFIGURE_ME", "name": "Google Sheets" }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Filter leads that need follow-up\nconst leads = $input.all();\nconst now = new Date();\nconst needsFollowUp = [];\n\nconst followUpMessages = {\n  'contacted': 'Oi {name}! Tudo bem? Vi que voce demonstrou interesse no nosso curso de Bar Staff. Ficou com alguma duvida? Estou aqui para ajudar! As proximas turmas estao quase lotando.',\n  'qualified': 'Oi {name}! Passando para lembrar que temos vagas abertas para a proxima turma. Ja pensou em garantir sua vaga? Posso te enviar os detalhes de pagamento.',\n  'proposal_sent': 'Oi {name}! Voce recebeu as informacoes do curso? Gostaria de saber se ficou com alguma duvida. Lembre-se que o preco early bird e por tempo limitado!',\n  'negotiation': 'Oi {name}! Como vai? Conseguiu pensar sobre o curso? Se tiver qualquer duvida, estou a disposicao. Posso tambem agendar uma call rapida para conversarmos!'\n};\n\nfor (const lead of leads) {\n  const data = lead.json;\n  if (!data.next_follow_up || data.stage === 'enrolled' || data.stage === 'lost' || data.stage === 'completed' || data.stage === 'alumni') continue;\n  \n  const followUpTime = new Date(data.next_follow_up);\n  if (now >= followUpTime && data.phone) {\n    const template = followUpMessages[data.stage] || followUpMessages['contacted'];\n    needsFollowUp.push({\n      json: {\n        lead_id: data.lead_id,\n        name: data.name,\n        phone: data.phone,\n        stage: data.stage,\n        message: template.replace('{name}', data.name)\n      }\n    });\n  }\n}\n\nreturn needsFollowUp.length > 0 ? needsFollowUp : [{ json: { skip: true } }];"
+      },
+      "id": "code-followup-filter",
+      "name": "Filter Follow-up Leads",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [690, 600]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.skip }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "notEquals" }
+            }
+          ]
+        }
+      },
+      "id": "filter-needs-followup",
+      "name": "Needs Follow-up?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [910, 600]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v18.0/{{$env.WHATSAPP_PHONE_ID}}/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $json.phone }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"{{ $json.message }}\"\n  }\n}"
+      },
+      "id": "whatsapp-followup",
+      "name": "WhatsApp - Follow-up",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1130, 600]
+    }
+  ],
+  "connections": {
+    "Webhook - Incoming Message": {
+      "main": [[
+        { "node": "Get Lead Context", "type": "main", "index": 0 },
+        { "node": "Get Conversation History", "type": "main", "index": 0 }
+      ]]
+    },
+    "Get Lead Context": {
+      "main": [[{ "node": "Build AI Context", "type": "main", "index": 0 }]]
+    },
+    "Get Conversation History": {
+      "main": [[{ "node": "Build AI Context", "type": "main", "index": 0 }]]
+    },
+    "Build AI Context": {
+      "main": [[{ "node": "AI Sales Agent", "type": "main", "index": 0 }]]
+    },
+    "AI Sales Agent": {
+      "main": [[{ "node": "Parse AI Response", "type": "main", "index": 0 }]]
+    },
+    "Parse AI Response": {
+      "main": [[
+        { "node": "Save to History", "type": "main", "index": 0 },
+        { "node": "Update Lead Stage", "type": "main", "index": 0 },
+        { "node": "WhatsApp - Send Reply", "type": "main", "index": 0 },
+        { "node": "Webhook Response", "type": "main", "index": 0 }
+      ]]
+    },
+    "Schedule - Follow-up Check": {
+      "main": [[{ "node": "Get Leads for Follow-up", "type": "main", "index": 0 }]]
+    },
+    "Get Leads for Follow-up": {
+      "main": [[{ "node": "Filter Follow-up Leads", "type": "main", "index": 0 }]]
+    },
+    "Filter Follow-up Leads": {
+      "main": [[{ "node": "Needs Follow-up?", "type": "main", "index": 0 }]]
+    },
+    "Needs Follow-up?": {
+      "main": [
+        [{ "node": "WhatsApp - Follow-up", "type": "main", "index": 0 }],
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    { "name": "BR Academy" },
+    { "name": "Sales Agent" },
+    { "name": "AI" }
+  ]
+}

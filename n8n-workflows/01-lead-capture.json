@@ -1,0 +1,384 @@
+{
+  "name": "BR Academy - 01 Lead Capture",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "br-academy-lead",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-lead",
+      "name": "Webhook - New Lead",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false
+          },
+          "combinator": "or",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.source }}",
+              "rightValue": "instagram",
+              "operator": { "type": "string", "operation": "equals" }
+            },
+            {
+              "leftValue": "={{ $json.source }}",
+              "rightValue": "facebook",
+              "operator": { "type": "string", "operation": "equals" }
+            },
+            {
+              "leftValue": "={{ $json.source }}",
+              "rightValue": "whatsapp",
+              "operator": { "type": "string", "operation": "equals" }
+            },
+            {
+              "leftValue": "={{ $json.source }}",
+              "rightValue": "website",
+              "operator": { "type": "string", "operation": "equals" }
+            },
+            {
+              "leftValue": "={{ $json.source }}",
+              "rightValue": "referral",
+              "operator": { "type": "string", "operation": "equals" }
+            }
+          ]
+        }
+      },
+      "id": "filter-source",
+      "name": "Validate Source",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [470, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "lead_id",
+              "name": "lead_id",
+              "value": "={{ 'BR-' + $now.format('yyyyMMdd') + '-' + Math.random().toString(36).substring(2, 8).toUpperCase() }}",
+              "type": "string"
+            },
+            {
+              "id": "name",
+              "name": "name",
+              "value": "={{ $json.name || $json.nome || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "email",
+              "name": "email",
+              "value": "={{ $json.email || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "phone",
+              "name": "phone",
+              "value": "={{ $json.phone || $json.telefone || $json.whatsapp || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "source",
+              "name": "source",
+              "value": "={{ $json.source || 'website' }}",
+              "type": "string"
+            },
+            {
+              "id": "nationality",
+              "name": "nationality",
+              "value": "={{ $json.nationality || $json.nacionalidade || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "visa_type",
+              "name": "visa_type",
+              "value": "={{ $json.visa_type || $json.tipo_visto || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "english_level",
+              "name": "english_level",
+              "value": "={{ $json.english_level || $json.nivel_ingles || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "preferred_date",
+              "name": "preferred_date",
+              "value": "={{ $json.preferred_date || $json.data_preferida || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "stage",
+              "name": "stage",
+              "value": "new_lead",
+              "type": "string"
+            },
+            {
+              "id": "score",
+              "name": "score",
+              "value": "0",
+              "type": "number"
+            },
+            {
+              "id": "created_at",
+              "name": "created_at",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "updated_at",
+              "name": "updated_at",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "notes",
+              "name": "notes",
+              "value": "={{ $json.message || $json.mensagem || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "utm_source",
+              "name": "utm_source",
+              "value": "={{ $json.utm_source || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "utm_campaign",
+              "name": "utm_campaign",
+              "value": "={{ $json.utm_campaign || '' }}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "id": "set-lead-data",
+      "name": "Format Lead Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [690, 300]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": { "__rl": true, "mode": "id", "value": "={{$env.GOOGLE_SHEET_LEADS_ID}}" },
+        "sheetName": { "__rl": true, "mode": "gid", "value": "0" },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {}
+        },
+        "options": {}
+      },
+      "id": "sheets-add-lead",
+      "name": "Google Sheets - Add Lead",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [910, 200],
+      "credentials": {
+        "googleSheetsOAuth2Api": { "id": "CONFIGURE_ME", "name": "Google Sheets" }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": false },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.phone }}",
+              "rightValue": "",
+              "operator": { "type": "string", "operation": "notEquals" }
+            }
+          ]
+        }
+      },
+      "id": "check-has-phone",
+      "name": "Has Phone?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [910, 420]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v18.0/{{$env.WHATSAPP_PHONE_ID}}/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "messaging_product",
+              "value": "whatsapp"
+            },
+            {
+              "name": "to",
+              "value": "={{ $('Format Lead Data').item.json.phone }}"
+            },
+            {
+              "name": "type",
+              "value": "template"
+            },
+            {
+              "name": "template",
+              "value": "={{ JSON.stringify({ name: 'br_academy_welcome', language: { code: 'pt_BR' }, components: [{ type: 'body', parameters: [{ type: 'text', text: $('Format Lead Data').item.json.name }] }] }) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "whatsapp-welcome",
+      "name": "WhatsApp - Welcome Message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1130, 360]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": false },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $('Format Lead Data').item.json.email }}",
+              "rightValue": "",
+              "operator": { "type": "string", "operation": "notEquals" }
+            }
+          ]
+        }
+      },
+      "id": "check-has-email",
+      "name": "Has Email?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [910, 620]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Format Lead Data').item.json.email }}",
+        "subject": "Bem-vindo a BR Academy! \ud83c\udf1f Seu caminho para trabalhar em bares na Irlanda",
+        "message": "=<h2>Ola {{ $('Format Lead Data').item.json.name }}!</h2><p>Obrigado pelo seu interesse na <strong>BR Academy</strong> - o primeiro e maior centro de treinamento de Bar Staff na Irlanda!</p><p>Recebemos sua inscricao e estamos muito felizes em te-lo(a) conosco.</p><h3>O que voce vai aprender:</h3><ul><li>Tecnicas profissionais de bar (cocktails, cervejas, cafe)</li><li>Atendimento ao cliente em ingles</li><li>Legislacao irlandesa sobre bebidas</li><li>Como conseguir emprego rapidamente</li></ul><p>Nossa equipe entrara em contato em breve para agendar sua turma.</p><p><strong>Equipe BR Academy</strong><br>Dublin, Ireland</p>",
+        "options": {}
+      },
+      "id": "email-welcome",
+      "name": "Gmail - Welcome Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [1130, 620],
+      "credentials": {
+        "gmailOAuth2": { "id": "CONFIGURE_ME", "name": "Gmail" }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, lead_id: $('Format Lead Data').item.json.lead_id, message: 'Lead registered successfully' }) }}",
+        "options": {}
+      },
+      "id": "webhook-response",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1350, 300]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "minutes", "minutesInterval": 30 }]
+        }
+      },
+      "id": "schedule-instagram",
+      "name": "Schedule - Check Instagram",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [250, 700]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://graph.facebook.com/v18.0/{{$env.INSTAGRAM_BUSINESS_ID}}/conversations?fields=participants,messages{message,from,created_time}&platform=instagram",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "instagram-fetch-dms",
+      "name": "Instagram - Fetch DMs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [470, 700]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process Instagram DMs and extract potential leads\nconst conversations = $input.all();\nconst leads = [];\nconst keywords = ['curso', 'course', 'treinamento', 'training', 'bar', 'trabalho', 'work', 'preco', 'price', 'quanto', 'how much', 'quando', 'when', 'vaga', 'emprego', 'job'];\n\nfor (const conv of conversations) {\n  const messages = conv.json?.messages?.data || [];\n  for (const msg of messages) {\n    const text = (msg.message || '').toLowerCase();\n    const hasKeyword = keywords.some(kw => text.includes(kw));\n    if (hasKeyword) {\n      leads.push({\n        json: {\n          name: msg.from?.name || 'Instagram Lead',\n          source: 'instagram',\n          phone: '',\n          email: '',\n          message: msg.message,\n          nationality: '',\n          visa_type: '',\n          english_level: '',\n          preferred_date: '',\n          instagram_id: msg.from?.id || ''\n        }\n      });\n    }\n  }\n}\n\nreturn leads.length > 0 ? leads : [{ json: { skip: true } }];"
+      },
+      "id": "code-parse-instagram",
+      "name": "Parse Instagram Leads",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [690, 700]
+    }
+  ],
+  "connections": {
+    "Webhook - New Lead": {
+      "main": [
+        [{ "node": "Validate Source", "type": "main", "index": 0 }]
+      ]
+    },
+    "Validate Source": {
+      "main": [
+        [{ "node": "Format Lead Data", "type": "main", "index": 0 }]
+      ]
+    },
+    "Format Lead Data": {
+      "main": [
+        [
+          { "node": "Google Sheets - Add Lead", "type": "main", "index": 0 },
+          { "node": "Has Phone?", "type": "main", "index": 0 },
+          { "node": "Has Email?", "type": "main", "index": 0 },
+          { "node": "Webhook Response", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Has Phone?": {
+      "main": [
+        [{ "node": "WhatsApp - Welcome Message", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Has Email?": {
+      "main": [
+        [{ "node": "Gmail - Welcome Email", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Schedule - Check Instagram": {
+      "main": [
+        [{ "node": "Instagram - Fetch DMs", "type": "main", "index": 0 }]
+      ]
+    },
+    "Instagram - Fetch DMs": {
+      "main": [
+        [{ "node": "Parse Instagram Leads", "type": "main", "index": 0 }]
+      ]
+    },
+    "Parse Instagram Leads": {
+      "main": [
+        [{ "node": "Validate Source", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    { "name": "BR Academy" },
+    { "name": "Lead Capture" }
+  ]
+}
