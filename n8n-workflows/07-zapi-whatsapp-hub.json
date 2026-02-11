@@ -51,7 +51,9 @@
           ],
           "combinator": "and"
         },
-        "options": {}
+        "options": {
+          "typeValidation": "loose"
+        }
       },
       "id": "c18609c8-0de4-4d4c-b540-ec5582d0d226",
       "name": "Filter Valid Messages",
@@ -110,7 +112,9 @@
           ],
           "combinator": "and"
         },
-        "options": {}
+        "options": {
+          "typeValidation": "loose"
+        }
       },
       "id": "ba6bb171-9a8e-4622-9cc4-6cbeae11068f",
       "name": "Is Audio?",
@@ -343,7 +347,9 @@
           ],
           "combinator": "and"
         },
-        "options": {}
+        "options": {
+          "typeValidation": "loose"
+        }
       },
       "id": "0c2506f2-5a06-45f1-9956-bef73bb52384",
       "name": "Is New Lead?",
