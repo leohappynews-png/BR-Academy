@@ -18,7 +18,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const raw = $input.first().json;\nconst body = raw.body || raw;\n\nlet phone = body.phone || body.chatId || body.from || '';\nphone = phone.replace('@c.us', '').replace('@s.whatsapp.net', '');\n\nlet messageType = 'text';\nlet messageContent = '';\nlet mediaUrl = '';\nlet fileName = '';\n\nif (body.audio) {\n  messageType = 'audio';\n  mediaUrl = body.audio.audioUrl;\n  messageContent = '[AUDIO_PENDENTE_TRANSCRICAO]';\n} else if (body.image) {\n  messageType = 'image';\n  mediaUrl = body.image.imageUrl;\n  messageContent = body.image.caption || '[Imagem sem legenda]';\n} else if (body.video) {\n  messageType = 'video';\n  mediaUrl = body.video.videoUrl;\n  messageContent = body.video.caption || '[Video]';\n} else if (body.document) {\n  messageType = 'document';\n  mediaUrl = body.document.documentUrl;\n  fileName = body.document.fileName || 'documento';\n  messageContent = `[Documento: ${fileName}]`;\n} else if (body.sticker) {\n  messageType = 'sticker';\n  messageContent = '[Sticker]';\n} else if (body.listResponseMessage) {\n  messageType = 'list_response';\n  messageContent = body.listResponseMessage.title || body.listResponseMessage.singleSelectReply?.selectedRowId || '';\n} else if (body.buttonsResponseMessage) {\n  messageType = 'button_response';\n  messageContent = body.buttonsResponseMessage.selectedButtonId || body.buttonsResponseMessage.selectedDisplayText || '';\n} else if (body.text) {\n  messageType = 'text';\n  messageContent = body.text.message || body.text || '';\n} else {\n  messageType = 'unknown';\n  messageContent = JSON.stringify(body).substring(0, 200);\n}\n\nconst isFromMe = body.fromMe === true;\nconst isStatus = phone === 'status' || phone === '';\n\nreturn [{\n  json: {\n    phone, message_type: messageType, message_content: messageContent,\n    media_url: mediaUrl, file_name: fileName,\n    is_from_me: isFromMe, is_status: isStatus,\n    raw_timestamp: body.timestamp || Date.now()\n  }\n}];"
+        "jsCode": "const raw = $input.first().json;\nconst body = raw.body || raw;\n\nlet phone = body.phone || body.chatId || body.from || '';\nphone = String(phone).replace('@c.us', '').replace('@s.whatsapp.net', '');\n\n// Detect group messages\nconst chatId = String(body.chatId || '');\nconst isGroup = body.isGroup === true ||\n                chatId.includes('@g.us') ||\n                String(phone).includes('-group') ||\n                String(phone).includes('@g.us');\n\nconst isFromMe = body.fromMe === true;\nconst isStatus = phone === 'status' || phone === '';\n\n// Filter out invalid messages early\nif (isGroup || isFromMe || isStatus || !phone) {\n  return [];\n}\n\nlet messageType = 'text';\nlet messageContent = '';\nlet mediaUrl = '';\nlet fileName = '';\n\nif (body.audio) {\n  messageType = 'audio';\n  mediaUrl = body.audio.audioUrl;\n  messageContent = '[AUDIO_PENDENTE_TRANSCRICAO]';\n} else if (body.image) {\n  messageType = 'image';\n  mediaUrl = body.image.imageUrl;\n  messageContent = body.image.caption || '[Imagem sem legenda]';\n} else if (body.video) {\n  messageType = 'video';\n  mediaUrl = body.video.videoUrl;\n  messageContent = body.video.caption || '[Video]';\n} else if (body.document) {\n  messageType = 'document';\n  mediaUrl = body.document.documentUrl;\n  fileName = body.document.fileName || 'documento';\n  messageContent = `[Documento: ${fileName}]`;\n} else if (body.sticker) {\n  messageType = 'sticker';\n  messageContent = '[Sticker]';\n} else if (body.listResponseMessage) {\n  messageType = 'list_response';\n  messageContent = body.listResponseMessage.title || body.listResponseMessage.singleSelectReply?.selectedRowId || '';\n} else if (body.buttonsResponseMessage) {\n  messageType = 'button_response';\n  messageContent = body.buttonsResponseMessage.selectedButtonId || body.buttonsResponseMessage.selectedDisplayText || '';\n} else if (body.text) {\n  messageType = 'text';\n  if (typeof body.text === 'object') {\n    messageContent = body.text.message || '';\n  } else {\n    messageContent = String(body.text);\n  }\n} else {\n  messageType = 'unknown';\n  messageContent = JSON.stringify(body).substring(0, 200);\n}\n\nreturn [{\n  json: {\n    phone, message_type: messageType, message_content: messageContent,\n    media_url: mediaUrl, file_name: fileName,\n    raw_timestamp: body.timestamp || Date.now()\n  }\n}];"
       },
       "id": "9bed1d4b-3ff8-4ddc-babc-149cb88323ed",
       "name": "Parse Z-API Message",
@@ -35,28 +35,10 @@
           "options": {
             "caseSensitive": true,
             "leftValue": "",
-            "typeValidation": "strict",
+            "typeValidation": "loose",
             "version": 2
           },
           "conditions": [
-            {
-              "id": "43bb7476-a16c-4849-9742-da92e5a4de08",
-              "leftValue": "={{ $json.is_from_me }}",
-              "rightValue": false,
-              "operator": {
-                "type": "boolean",
-                "operation": "equals"
-              }
-            },
-            {
-              "id": "3e9c3aec-d5d3-4ed1-b8fa-846c1b7266e8",
-              "leftValue": "={{ $json.is_status }}",
-              "rightValue": false,
-              "operator": {
-                "type": "boolean",
-                "operation": "equals"
-              }
-            },
             {
               "id": "f01ee36a-8c69-4b8b-8bfb-b98ba3d268b1",
               "leftValue": "={{ $json.phone }}",
@@ -112,7 +94,7 @@
           "options": {
             "caseSensitive": true,
             "leftValue": "",
-            "typeValidation": "strict",
+            "typeValidation": "loose",
             "version": 2
           },
           "conditions": [
@@ -256,32 +238,12 @@
     },
     {
       "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 2
-          },
-          "conditions": [
-            {
-              "id": "301c034b-3795-4ab4-83a1-bd5a5af6b41e",
-              "leftValue": "={{ $json.mensagens.split(',').pop().trim() }}",
-              "rightValue": "={{ $('Classify Message').item.json.texto }}",
-              "operator": {
-                "type": "string",
-                "operation": "contains"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
+        "jsCode": "const raw = $('Pull Messages').first().json.mensagens || '';\nconst currentTexto = $('Classify Message').first().json.texto || '';\nconst context = $('Normalize Phone').first().json;\n\n// Parse the Redis list string: \"['msg1', 'msg2', ...]\"\nlet messages = [];\nconst rawStr = String(raw);\nif (rawStr.startsWith('[')) {\n  const trimmed = rawStr.slice(1, -1).trim();\n  if (trimmed.length > 0) {\n    messages = trimmed.split(\"', '\").map(s => s.replace(/^'/, '').replace(/'$/, '').trim());\n  }\n} else if (rawStr.length > 0) {\n  messages = [rawStr];\n}\n\nif (messages.length === 0) {\n  return []; // No messages in Redis\n}\n\n// For single message, always process it\nif (messages.length === 1) {\n  return [{\n    json: {\n      normalized_phone: context.normalized_phone,\n      original_phone: context.original_phone,\n      merged_message: messages[0],\n      message_count: 1,\n      raw_timestamp: context.raw_timestamp\n    }\n  }];\n}\n\n// For multiple messages (batch), only the LAST execution should process\nconst lastMsg = messages[messages.length - 1];\nconst snippet = currentTexto.substring(0, 40);\n\nif (snippet && lastMsg.includes(snippet)) {\n  return [{\n    json: {\n      normalized_phone: context.normalized_phone,\n      original_phone: context.original_phone,\n      merged_message: messages.join('\\n'),\n      message_count: messages.length,\n      raw_timestamp: context.raw_timestamp\n    }\n  }];\n}\n\n// Not the last message in the batch — skip\nreturn [];"
       },
       "id": "46babdda-fc4b-470e-88d3-873b2303bfb3",
-      "name": "Should Process?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
+      "name": "Dedup & Merge",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
         1600,
         300
@@ -290,7 +252,7 @@
     {
       "parameters": {
         "operation": "delete",
-        "key": "={{ $('Normalize Phone').item.json.normalized_phone }}_bracademy"
+        "key": "={{ $json.normalized_phone }}_bracademy"
       },
       "id": "1c3cc389-b4b4-45f8-950b-b92566978edf",
       "name": "Redis Delete",
@@ -298,7 +260,7 @@
       "typeVersion": 1,
       "position": [
         1800,
-        200
+        300
       ],
       "credentials": {
         "redis": {
@@ -306,30 +268,6 @@
           "name": "Redis BR Academy"
         }
       }
-    },
-    {
-      "parameters": {},
-      "id": "33d19470-4742-4401-bb55-fa0a3c51247b",
-      "name": "Stop",
-      "type": "n8n-nodes-base.noOp",
-      "typeVersion": 1,
-      "position": [
-        1800,
-        500
-      ]
-    },
-    {
-      "parameters": {
-        "jsCode": "const msgs = $('Pull Messages').first().json.mensagens || [];\nconst context = $('Normalize Phone').first().json;\nconst mergedMessage = Array.isArray(msgs) ? msgs.join('\\n') : String(msgs);\nreturn [{ json: { normalized_phone: context.normalized_phone, original_phone: context.original_phone, merged_message: mergedMessage, message_count: Array.isArray(msgs) ? msgs.length : 1, raw_timestamp: context.raw_timestamp } }];"
-      },
-      "id": "c45c825b-de5b-43fc-a25e-262c5c2d0f6f",
-      "name": "Merge Messages",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        2000,
-        200
-      ]
     },
     {
       "parameters": {
@@ -360,8 +298,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        2200,
-        200
+        2000,
+        300
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -376,7 +314,7 @@
           "options": {
             "caseSensitive": true,
             "leftValue": "",
-            "typeValidation": "strict",
+            "typeValidation": "loose",
             "version": 2
           },
           "conditions": [
@@ -399,21 +337,21 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        2400,
-        200
+        2200,
+        300
       ]
     },
     {
       "parameters": {
-        "jsCode": "const msg = $('Merge Messages').first().json;\nconst phone = msg.normalized_phone;\nconst leadId = 'BR-' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '-' + Math.random().toString(36).substring(2, 8).toUpperCase();\nreturn [{ json: { lead_id: leadId, name: 'WhatsApp Lead', email: '', phone: phone, source: 'whatsapp', nationality: '', visa_type: '', english_level: '', preferred_date: '', stage: 'new_lead', score: 10, priority: 'medium', qualification_notes: 'Auto-registered via WhatsApp', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), next_follow_up: '', notes: 'First message: ' + (msg.merged_message || '').substring(0, 200), utm_source: 'whatsapp_organic', utm_campaign: '', lost_reason: '', referred_by: '' } }];"
+        "jsCode": "const msg = $('Dedup & Merge').first().json;\nconst phone = msg.normalized_phone;\nconst leadId = 'BR-' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '-' + Math.random().toString(36).substring(2, 8).toUpperCase();\nreturn [{ json: { lead_id: leadId, name: 'WhatsApp Lead', email: '', phone: phone, source: 'whatsapp', nationality: '', visa_type: '', english_level: '', preferred_date: '', stage: 'new_lead', score: 10, priority: 'medium', qualification_notes: 'Auto-registered via WhatsApp', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), next_follow_up: '', notes: 'First message: ' + (msg.merged_message || '').substring(0, 200), utm_source: 'whatsapp_organic', utm_campaign: '', lost_reason: '', referred_by: '' } }];"
       },
       "id": "0c4e4ec6-82d4-410d-b83f-f2ed33d9ae0a",
       "name": "Auto-Register Lead",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2600,
-        100
+        2400,
+        200
       ]
     },
     {
@@ -440,8 +378,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        2800,
-        100
+        2600,
+        200
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -452,15 +390,15 @@
     },
     {
       "parameters": {
-        "jsCode": "const msgs = $('Pull Messages').first().json.mensagens || [];\nconst context = $('Normalize Phone').first().json;\nconst leadData = $('Check Lead Exists').first().json;\nconst mergedMessage = Array.isArray(msgs) ? msgs.join('\\n') : String(msgs);\nconst isNewLead = !leadData.lead_id;\nreturn [{ json: { lead_id: leadData.lead_id || `lead_${Date.now()}`, phone: context.normalized_phone, name: leadData.lead_name || leadData.name || 'Novo Lead', stage: leadData.lead_stage || leadData.stage || 'new_lead', score: leadData.lead_score || leadData.score || 0, message: mergedMessage, message_type: 'text', is_new_lead: isNewLead, channel: 'whatsapp' } }];"
+        "jsCode": "const msgs = $('Pull Messages').first().json.mensagens || [];\nconst context = $('Normalize Phone').first().json;\nconst leadData = $('Check Lead Exists').first().json;\nconst mergedMsg = $('Dedup & Merge').first().json.merged_message || '';\nconst isNewLead = !leadData.lead_id;\nreturn [{ json: { lead_id: leadData.lead_id || `lead_${Date.now()}`, phone: context.normalized_phone, name: leadData.lead_name || leadData.name || 'Novo Lead', stage: leadData.lead_stage || leadData.stage || 'new_lead', score: leadData.lead_score || leadData.score || 0, message: mergedMsg, message_type: 'text', is_new_lead: isNewLead, channel: 'whatsapp' } }];"
       },
       "id": "6c063758-3952-4c20-b31d-fd92071e9eb7",
       "name": "Build Router Payload",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3000,
-        200
+        2800,
+        300
       ]
     },
     {
@@ -493,8 +431,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
       "position": [
-        3200,
-        200
+        3000,
+        300
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -506,7 +444,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{$env.N8N_WEBHOOK_BASE_URL}}/webhook/br-academy-ai-router",
+        "url": "https://n8n.srv1031906.hstgr.cloud/webhook/br-academy-ai-router",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify($json) }}",
@@ -517,8 +455,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3400,
-        200
+        3200,
+        300
       ]
     },
     {
@@ -727,14 +665,14 @@
       "main": [
         [
           {
-            "node": "Should Process?",
+            "node": "Dedup & Merge",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Should Process?": {
+    "Dedup & Merge": {
       "main": [
         [
           {
@@ -742,28 +680,10 @@
             "type": "main",
             "index": 0
           }
-        ],
-        [
-          {
-            "node": "Stop",
-            "type": "main",
-            "index": 0
-          }
         ]
       ]
     },
     "Redis Delete": {
-      "main": [
-        [
-          {
-            "node": "Merge Messages",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Merge Messages": {
       "main": [
         [
           {
