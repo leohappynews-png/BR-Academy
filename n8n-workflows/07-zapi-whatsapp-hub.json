@@ -7,7 +7,7 @@
         "path": "br-academy-zapi-receive",
         "options": {}
       },
-      "id": "webhook-zapi-receive",
+      "id": "9bf15f01-ba56-47dc-a257-953321cd7275",
       "name": "Webhook Receive",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
@@ -18,9 +18,9 @@
     },
     {
       "parameters": {
-        "jsCode": "const raw = $input.first().json;\nconst body = raw.body || raw;\n\nlet phone = body.phone || body.chatId || body.from || '';\nphone = phone.replace('@c.us', '').replace('@s.whatsapp.net', '');\n\nlet messageType = 'text';\nlet messageContent = '';\nlet mediaUrl = '';\nlet fileName = '';\n\nif (body.audio) {\n  messageType = 'audio';\n  mediaUrl = body.audio.audioUrl;\n  messageContent = '[AUDIO_PENDENTE_TRANSCRICAO]';\n} else if (body.image) {\n  messageType = 'image';\n  mediaUrl = body.image.imageUrl;\n  messageContent = body.image.caption || '[Imagem sem legenda]';\n} else if (body.video) {\n  messageType = 'video';\n  mediaUrl = body.video.videoUrl;\n  messageContent = body.video.caption || '[Video]';\n} else if (body.document) {\n  messageType = 'document';\n  mediaUrl = body.document.documentUrl;\n  fileName = body.document.fileName || 'documento';\n  messageContent = `[Documento: ${fileName}]`;\n} else if (body.sticker) {\n  messageType = 'sticker';\n  messageContent = '[Sticker]';\n} else if (body.listResponseMessage) {\n  messageType = 'list_response';\n  messageContent = body.listResponseMessage.title || body.listResponseMessage.singleSelectReply?.selectedRowId || '';\n} else if (body.buttonsResponseMessage) {\n  messageType = 'button_response';\n  messageContent = body.buttonsResponseMessage.selectedButtonId || body.buttonsResponseMessage.selectedDisplayText || '';\n} else if (body.text) {\n  messageType = 'text';\n  messageContent = body.text.message || body.text || '';\n} else {\n  messageType = 'unknown';\n  messageContent = JSON.stringify(body).substring(0, 200);\n}\n\n// Ignore status messages and own messages\nconst isFromMe = body.fromMe === true;\nconst isStatus = phone === 'status' || phone === '';\n\nreturn [{\n  json: {\n    phone,\n    message_type: messageType,\n    message_content: messageContent,\n    media_url: mediaUrl,\n    file_name: fileName,\n    is_from_me: isFromMe,\n    is_status: isStatus,\n    raw_timestamp: body.timestamp || Date.now()\n  }\n}];"
+        "jsCode": "const raw = $input.first().json;\nconst body = raw.body || raw;\n\nlet phone = body.phone || body.chatId || body.from || '';\nphone = phone.replace('@c.us', '').replace('@s.whatsapp.net', '');\n\nlet messageType = 'text';\nlet messageContent = '';\nlet mediaUrl = '';\nlet fileName = '';\n\nif (body.audio) {\n  messageType = 'audio';\n  mediaUrl = body.audio.audioUrl;\n  messageContent = '[AUDIO_PENDENTE_TRANSCRICAO]';\n} else if (body.image) {\n  messageType = 'image';\n  mediaUrl = body.image.imageUrl;\n  messageContent = body.image.caption || '[Imagem sem legenda]';\n} else if (body.video) {\n  messageType = 'video';\n  mediaUrl = body.video.videoUrl;\n  messageContent = body.video.caption || '[Video]';\n} else if (body.document) {\n  messageType = 'document';\n  mediaUrl = body.document.documentUrl;\n  fileName = body.document.fileName || 'documento';\n  messageContent = `[Documento: ${fileName}]`;\n} else if (body.sticker) {\n  messageType = 'sticker';\n  messageContent = '[Sticker]';\n} else if (body.listResponseMessage) {\n  messageType = 'list_response';\n  messageContent = body.listResponseMessage.title || body.listResponseMessage.singleSelectReply?.selectedRowId || '';\n} else if (body.buttonsResponseMessage) {\n  messageType = 'button_response';\n  messageContent = body.buttonsResponseMessage.selectedButtonId || body.buttonsResponseMessage.selectedDisplayText || '';\n} else if (body.text) {\n  messageType = 'text';\n  messageContent = body.text.message || body.text || '';\n} else {\n  messageType = 'unknown';\n  messageContent = JSON.stringify(body).substring(0, 200);\n}\n\nconst isFromMe = body.fromMe === true;\nconst isStatus = phone === 'status' || phone === '';\n\nreturn [{\n  json: {\n    phone, message_type: messageType, message_content: messageContent,\n    media_url: mediaUrl, file_name: fileName,\n    is_from_me: isFromMe, is_status: isStatus,\n    raw_timestamp: body.timestamp || Date.now()\n  }\n}];"
       },
-      "id": "parse-zapi-msg",
+      "id": "9bed1d4b-3ff8-4ddc-babc-149cb88323ed",
       "name": "Parse Z-API Message",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -32,9 +32,15 @@
     {
       "parameters": {
         "conditions": {
-          "combinator": "and",
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
           "conditions": [
             {
+              "id": "43bb7476-a16c-4849-9742-da92e5a4de08",
               "leftValue": "={{ $json.is_from_me }}",
               "rightValue": false,
               "operator": {
@@ -43,6 +49,7 @@
               }
             },
             {
+              "id": "3e9c3aec-d5d3-4ed1-b8fa-846c1b7266e8",
               "leftValue": "={{ $json.is_status }}",
               "rightValue": false,
               "operator": {
@@ -51,6 +58,7 @@
               }
             },
             {
+              "id": "f01ee36a-8c69-4b8b-8bfb-b98ba3d268b1",
               "leftValue": "={{ $json.phone }}",
               "rightValue": "",
               "operator": {
@@ -58,13 +66,15 @@
                 "operation": "notEquals"
               }
             }
-          ]
-        }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
       },
-      "id": "filter-valid-msg",
+      "id": "c18609c8-0de4-4d4c-b540-ec5582d0d226",
       "name": "Filter Valid Messages",
       "type": "n8n-nodes-base.if",
-      "typeVersion": 2,
+      "typeVersion": 2.2,
       "position": [
         -400,
         300
@@ -72,9 +82,9 @@
     },
     {
       "parameters": {
-        "jsCode": "function normalizeIrishPhone(rawPhone) {\n  if (!rawPhone) return null;\n  let phone = rawPhone.toString().trim().replace(/[^\\d+]/g, '');\n  if (phone.startsWith('+353')) return phone;\n  if (phone.startsWith('353')) return `+${phone}`;\n  if (phone.startsWith('08')) return `+353${phone.substring(1)}`;\n  if (phone.length === 9 && phone.startsWith('8')) return `+353${phone}`;\n  // Also handle Brazilian numbers\n  if (phone.startsWith('+55')) return phone;\n  if (phone.startsWith('55') && phone.length >= 12) return `+${phone}`;\n  return phone.startsWith('+') ? phone : `+${phone}`;\n}\n\nconst input = $input.first().json;\nconst normalizedPhone = normalizeIrishPhone(input.phone);\n\nreturn [{\n  json: {\n    ...input,\n    original_phone: input.phone,\n    normalized_phone: normalizedPhone\n  }\n}];"
+        "jsCode": "function normalizePhone(rawPhone) {\n  if (!rawPhone) return null;\n  let phone = rawPhone.toString().trim().replace(/[^\\d+]/g, '');\n  if (phone.startsWith('+353')) return phone;\n  if (phone.startsWith('353')) return `+${phone}`;\n  if (phone.startsWith('08')) return `+353${phone.substring(1)}`;\n  if (phone.length === 9 && phone.startsWith('8')) return `+353${phone}`;\n  if (phone.startsWith('+55')) return phone;\n  if (phone.startsWith('55') && phone.length >= 12) return `+${phone}`;\n  return phone.startsWith('+') ? phone : `+${phone}`;\n}\nconst input = $input.first().json;\nreturn [{ json: { ...input, original_phone: input.phone, normalized_phone: normalizePhone(input.phone) } }];"
       },
-      "id": "normalize-phone",
+      "id": "9f662c19-7938-49b5-be3c-88e1d6987c78",
       "name": "Normalize Phone",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -85,131 +95,47 @@
     },
     {
       "parameters": {
-        "rules": {
-          "values": [
-            {
-              "conditions": {
-                "combinator": "and",
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.message_type }}",
-                    "rightValue": "audio",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    }
-                  }
-                ]
-              },
-              "renameOutput": true,
-              "outputKey": "audio"
-            },
-            {
-              "conditions": {
-                "combinator": "and",
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.message_type }}",
-                    "rightValue": "text",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    }
-                  }
-                ]
-              },
-              "renameOutput": true,
-              "outputKey": "text"
-            },
-            {
-              "conditions": {
-                "combinator": "and",
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.message_type }}",
-                    "rightValue": "image",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    }
-                  }
-                ]
-              },
-              "renameOutput": true,
-              "outputKey": "image"
-            },
-            {
-              "conditions": {
-                "combinator": "and",
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.message_type }}",
-                    "rightValue": "video",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    }
-                  }
-                ]
-              },
-              "renameOutput": true,
-              "outputKey": "video"
-            },
-            {
-              "conditions": {
-                "combinator": "and",
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.message_type }}",
-                    "rightValue": "document",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    }
-                  }
-                ]
-              },
-              "renameOutput": true,
-              "outputKey": "document"
-            },
-            {
-              "conditions": {
-                "combinator": "or",
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.message_type }}",
-                    "rightValue": "button_response",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    }
-                  },
-                  {
-                    "leftValue": "={{ $json.message_type }}",
-                    "rightValue": "list_response",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    }
-                  }
-                ]
-              },
-              "renameOutput": true,
-              "outputKey": "button_list"
-            }
-          ],
-          "fallbackOutput": "extra"
-        },
-        "options": {
-          "allMatchingOutputs": false
-        }
+        "jsCode": "const input = $input.first().json;\nconst t = input.message_type;\nlet texto = '';\n\nif (t === 'text' || t === 'button_response' || t === 'list_response') {\n  texto = input.message_content;\n} else if (t === 'image') {\n  texto = '[IMAGEM] ' + input.message_content + ' ' + input.media_url;\n} else if (t === 'video') {\n  texto = '[VIDEO] ' + input.media_url;\n} else if (t === 'document') {\n  texto = '[DOCUMENTO] ' + input.file_name + ' ' + input.media_url;\n} else if (t === 'audio') {\n  texto = '__AUDIO__';\n} else {\n  texto = input.message_content || '[mensagem nao suportada]';\n}\n\nreturn [{ json: { ...input, texto, needs_transcription: t === 'audio' } }];"
       },
-      "id": "switch-message-type",
-      "name": "Switch Message Type",
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3,
+      "id": "caa138e8-bd91-4670-b7d8-444192aaf8c2",
+      "name": "Classify Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
         0,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "8c7b0c6d-5caf-429d-be91-2e72d7fa6d43",
+              "leftValue": "={{ $json.needs_transcription }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "ba6bb171-9a8e-4622-9cc4-6cbeae11068f",
+      "name": "Is Audio?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        200,
         300
       ]
     },
@@ -225,7 +151,7 @@
           }
         }
       },
-      "id": "download-audio",
+      "id": "726be91e-408a-4884-a098-dcd82be0181e",
       "name": "Download Audio",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -238,9 +164,11 @@
       "parameters": {
         "resource": "audio",
         "operation": "transcribe",
-        "options": {}
+        "options": {
+          "temperature": 0
+        }
       },
-      "id": "transcribe-audio",
+      "id": "76a0689f-05b2-4870-9952-692aa181b81e",
       "name": "Transcribe Audio",
       "type": "@n8n/n8n-nodes-langchain.openAi",
       "typeVersion": 1.8,
@@ -257,224 +185,14 @@
     },
     {
       "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "audio-texto",
-              "name": "texto",
-              "value": "={{ $json.text }}",
-              "type": "string"
-            },
-            {
-              "id": "audio-phone",
-              "name": "normalized_phone",
-              "value": "={{ $('Normalize Phone').item.json.normalized_phone }}",
-              "type": "string"
-            },
-            {
-              "id": "audio-type",
-              "name": "message_type",
-              "value": "audio",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
+        "jsCode": "const transcribed = $json.text || '';\nconst context = $('Normalize Phone').first().json;\nreturn [{ json: { ...context, texto: transcribed, needs_transcription: false } }];"
       },
-      "id": "set-texto-audio",
+      "id": "913691fc-a2cc-44f9-9ce7-065dd53bb3ed",
       "name": "Set Texto Audio",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        800,
-        100
-      ]
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "text-texto",
-              "name": "texto",
-              "value": "={{ $json.message_content }}",
-              "type": "string"
-            },
-            {
-              "id": "text-phone",
-              "name": "normalized_phone",
-              "value": "={{ $json.normalized_phone }}",
-              "type": "string"
-            },
-            {
-              "id": "text-type",
-              "name": "message_type",
-              "value": "text",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "set-texto-text",
-      "name": "Set Texto Text",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        400,
-        300
-      ]
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "image-texto",
-              "name": "texto",
-              "value": "=[IMAGEM] {{ $json.message_content }} {{ $json.media_url }}",
-              "type": "string"
-            },
-            {
-              "id": "image-phone",
-              "name": "normalized_phone",
-              "value": "={{ $json.normalized_phone }}",
-              "type": "string"
-            },
-            {
-              "id": "image-type",
-              "name": "message_type",
-              "value": "image",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "set-texto-image",
-      "name": "Set Texto Image",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        400,
-        500
-      ]
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "video-texto",
-              "name": "texto",
-              "value": "=[VIDEO] {{ $json.media_url }}",
-              "type": "string"
-            },
-            {
-              "id": "video-phone",
-              "name": "normalized_phone",
-              "value": "={{ $json.normalized_phone }}",
-              "type": "string"
-            },
-            {
-              "id": "video-type",
-              "name": "message_type",
-              "value": "video",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "set-texto-video",
-      "name": "Set Texto Video",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        400,
-        700
-      ]
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "doc-texto",
-              "name": "texto",
-              "value": "=[DOCUMENTO] {{ $json.file_name }} {{ $json.media_url }}",
-              "type": "string"
-            },
-            {
-              "id": "doc-phone",
-              "name": "normalized_phone",
-              "value": "={{ $json.normalized_phone }}",
-              "type": "string"
-            },
-            {
-              "id": "doc-type",
-              "name": "message_type",
-              "value": "document",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "set-texto-document",
-      "name": "Set Texto Document",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        400,
-        900
-      ]
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "btn-texto",
-              "name": "texto",
-              "value": "={{ $json.message_content }}",
-              "type": "string"
-            },
-            {
-              "id": "btn-phone",
-              "name": "normalized_phone",
-              "value": "={{ $json.normalized_phone }}",
-              "type": "string"
-            },
-            {
-              "id": "btn-type",
-              "name": "message_type",
-              "value": "={{ $json.message_type }}",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "set-texto-button-list",
-      "name": "Set Texto Button List",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        400,
-        1100
-      ]
-    },
-    {
-      "parameters": {
-        "jsCode": "// Audio branch needs to forward the original data for the download step\nconst input = $input.first().json;\nreturn [{\n  json: {\n    ...input,\n    media_url: input.media_url\n  }\n}];"
-      },
-      "id": "prepare-audio-download",
-      "name": "Prepare Audio Download",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        200,
+        800,
         100
       ]
     },
@@ -485,7 +203,7 @@
         "messageData": "={{ $json.texto }}",
         "tail": true
       },
-      "id": "redis-push-msg",
+      "id": "905c9a75-32da-4531-8f29-0ec533d008d8",
       "name": "Redis Push Message",
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
@@ -504,7 +222,7 @@
       "parameters": {
         "amount": 8
       },
-      "id": "wait-batch",
+      "id": "7d8d5d68-f678-4ab7-939b-e4814913d859",
       "name": "Wait 8 Seconds",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
@@ -512,7 +230,7 @@
         1200,
         300
       ],
-      "webhookId": "wait-batch-bracademy"
+      "webhookId": "9fe96054-a5fc-4275-a4f7-91905dc6ee78"
     },
     {
       "parameters": {
@@ -521,7 +239,7 @@
         "key": "={{ $('Normalize Phone').item.json.normalized_phone }}_bracademy",
         "options": {}
       },
-      "id": "redis-pull-msgs",
+      "id": "498858c7-137e-4a56-9378-35229507d612",
       "name": "Pull Messages",
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
@@ -539,23 +257,31 @@
     {
       "parameters": {
         "conditions": {
-          "combinator": "and",
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
           "conditions": [
             {
+              "id": "301c034b-3795-4ab4-83a1-bd5a5af6b41e",
               "leftValue": "={{ $json.mensagens.split(',').pop().trim() }}",
-              "rightValue": "={{ $('Collect Text').item.json.texto }}",
+              "rightValue": "={{ $('Classify Message').item.json.texto }}",
               "operator": {
                 "type": "string",
                 "operation": "contains"
               }
             }
-          ]
-        }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
       },
-      "id": "if-should-process",
-      "name": "Should This Execution Process?",
+      "id": "46babdda-fc4b-470e-88d3-873b2303bfb3",
+      "name": "Should Process?",
       "type": "n8n-nodes-base.if",
-      "typeVersion": 2,
+      "typeVersion": 2.2,
       "position": [
         1600,
         300
@@ -566,8 +292,8 @@
         "operation": "delete",
         "key": "={{ $('Normalize Phone').item.json.normalized_phone }}_bracademy"
       },
-      "id": "redis-delete-list",
-      "name": "Redis Delete List",
+      "id": "1c3cc389-b4b4-45f8-950b-b92566978edf",
+      "name": "Redis Delete",
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
@@ -582,10 +308,21 @@
       }
     },
     {
+      "parameters": {},
+      "id": "33d19470-4742-4401-bb55-fa0a3c51247b",
+      "name": "Stop",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1800,
+        500
+      ]
+    },
+    {
       "parameters": {
-        "jsCode": "const msgs = $('Pull Messages').first().json.mensagens || [];\nconst context = $('Normalize Phone').first().json;\n\nconst mergedMessage = Array.isArray(msgs) ? msgs.join('\\n') : String(msgs);\n\nreturn [{\n  json: {\n    normalized_phone: context.normalized_phone,\n    original_phone: context.original_phone,\n    merged_message: mergedMessage,\n    message_count: Array.isArray(msgs) ? msgs.length : 1,\n    raw_timestamp: context.raw_timestamp\n  }\n}];"
+        "jsCode": "const msgs = $('Pull Messages').first().json.mensagens || [];\nconst context = $('Normalize Phone').first().json;\nconst mergedMessage = Array.isArray(msgs) ? msgs.join('\\n') : String(msgs);\nreturn [{ json: { normalized_phone: context.normalized_phone, original_phone: context.original_phone, merged_message: mergedMessage, message_count: Array.isArray(msgs) ? msgs.length : 1, raw_timestamp: context.raw_timestamp } }];"
       },
-      "id": "merge-messages-code",
+      "id": "c45c825b-de5b-43fc-a25e-262c5c2d0f6f",
       "name": "Merge Messages",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -618,7 +355,7 @@
           }
         }
       },
-      "id": "check-lead-exists",
+      "id": "98712e5b-a8e7-45c4-98ae-8f949d2de4ec",
       "name": "Check Lead Exists",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
@@ -636,9 +373,15 @@
     {
       "parameters": {
         "conditions": {
-          "combinator": "and",
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
           "conditions": [
             {
+              "id": "f0aa492a-b6a9-40ab-b04b-9e016648c125",
               "leftValue": "={{ $json.lead_id }}",
               "rightValue": "",
               "operator": {
@@ -646,13 +389,15 @@
                 "operation": "equals"
               }
             }
-          ]
-        }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
       },
-      "id": "if-new-lead",
+      "id": "0c2506f2-5a06-45f1-9956-bef73bb52384",
       "name": "Is New Lead?",
       "type": "n8n-nodes-base.if",
-      "typeVersion": 2,
+      "typeVersion": 2.2,
       "position": [
         2400,
         200
@@ -660,9 +405,9 @@
     },
     {
       "parameters": {
-        "jsCode": "const msg = $('Merge Messages').first().json;\nconst phone = msg.normalized_phone;\n\nconst leadId = 'BR-' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '-' + Math.random().toString(36).substring(2, 8).toUpperCase();\n\nreturn [{\n  json: {\n    lead_id: leadId,\n    name: 'WhatsApp Lead',\n    email: '',\n    phone: phone,\n    source: 'whatsapp',\n    nationality: '',\n    visa_type: '',\n    english_level: '',\n    preferred_date: '',\n    stage: 'new_lead',\n    score: 10,\n    priority: 'medium',\n    qualification_notes: 'Auto-registered via WhatsApp',\n    created_at: new Date().toISOString(),\n    updated_at: new Date().toISOString(),\n    next_follow_up: '',\n    notes: 'First message: ' + (msg.merged_message || '').substring(0, 200),\n    utm_source: 'whatsapp_organic',\n    utm_campaign: '',\n    lost_reason: '',\n    referred_by: ''\n  }\n}];"
+        "jsCode": "const msg = $('Merge Messages').first().json;\nconst phone = msg.normalized_phone;\nconst leadId = 'BR-' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '-' + Math.random().toString(36).substring(2, 8).toUpperCase();\nreturn [{ json: { lead_id: leadId, name: 'WhatsApp Lead', email: '', phone: phone, source: 'whatsapp', nationality: '', visa_type: '', english_level: '', preferred_date: '', stage: 'new_lead', score: 10, priority: 'medium', qualification_notes: 'Auto-registered via WhatsApp', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), next_follow_up: '', notes: 'First message: ' + (msg.merged_message || '').substring(0, 200), utm_source: 'whatsapp_organic', utm_campaign: '', lost_reason: '', referred_by: '' } }];"
       },
-      "id": "auto-register-lead",
+      "id": "0c4e4ec6-82d4-410d-b83f-f2ed33d9ae0a",
       "name": "Auto-Register Lead",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -690,7 +435,7 @@
         },
         "options": {}
       },
-      "id": "sheets-save-new-lead",
+      "id": "dd4ad2d7-17f2-4cfb-84fe-8d9ceafbaf45",
       "name": "Save New Lead",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
@@ -707,9 +452,9 @@
     },
     {
       "parameters": {
-        "jsCode": "const msgs = $('Pull Messages').first().json.mensagens || [];\nconst context = $('Normalize Phone').first().json;\nconst leadData = $('Check Lead Exists').first().json;\n\nconst mergedMessage = Array.isArray(msgs) ? msgs.join('\\n') : String(msgs);\nconst isNewLead = !leadData.lead_id;\n\nreturn [{\n  json: {\n    lead_id: leadData.lead_id || `lead_${Date.now()}`,\n    phone: context.normalized_phone,\n    name: leadData.lead_name || leadData.name || 'Novo Lead',\n    stage: leadData.lead_stage || leadData.stage || 'new_lead',\n    score: leadData.lead_score || leadData.score || 0,\n    message: mergedMessage,\n    message_type: 'text',\n    is_new_lead: isNewLead,\n    channel: 'whatsapp'\n  }\n}];"
+        "jsCode": "const msgs = $('Pull Messages').first().json.mensagens || [];\nconst context = $('Normalize Phone').first().json;\nconst leadData = $('Check Lead Exists').first().json;\nconst mergedMessage = Array.isArray(msgs) ? msgs.join('\\n') : String(msgs);\nconst isNewLead = !leadData.lead_id;\nreturn [{ json: { lead_id: leadData.lead_id || `lead_${Date.now()}`, phone: context.normalized_phone, name: leadData.lead_name || leadData.name || 'Novo Lead', stage: leadData.lead_stage || leadData.stage || 'new_lead', score: leadData.lead_score || leadData.score || 0, message: mergedMessage, message_type: 'text', is_new_lead: isNewLead, channel: 'whatsapp' } }];"
       },
-      "id": "build-router-payload",
+      "id": "6c063758-3952-4c20-b31d-fd92071e9eb7",
       "name": "Build Router Payload",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -743,7 +488,7 @@
         },
         "options": {}
       },
-      "id": "sheets-save-messages",
+      "id": "2515ef47-6258-4b83-85d8-52b12ecd7e77",
       "name": "Save Messages",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
@@ -767,7 +512,7 @@
         "jsonBody": "={{ JSON.stringify($json) }}",
         "options": {}
       },
-      "id": "send-to-ai-router",
+      "id": "38e0651a-c8ed-4c37-b609-0592c122994f",
       "name": "Send to AI Router",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -777,24 +522,13 @@
       ]
     },
     {
-      "parameters": {},
-      "id": "noop-stop",
-      "name": "Stop - Another Execution Handles",
-      "type": "n8n-nodes-base.noOp",
-      "typeVersion": 1,
-      "position": [
-        1800,
-        500
-      ]
-    },
-    {
       "parameters": {
         "httpMethod": "POST",
         "path": "br-academy-zapi-send",
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "webhook-zapi-send",
+      "id": "bcf65207-24e3-4d55-9246-47db938d9c47",
       "name": "Send Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
@@ -805,9 +539,9 @@
     },
     {
       "parameters": {
-        "jsCode": "const input = $input.first().json;\nconst phone = input.phone;\nconst instanceId = $env.ZAPI_INSTANCE_ID;\nconst token = $env.ZAPI_TOKEN;\nconst clientToken = $env.ZAPI_CLIENT_TOKEN;\nconst baseUrl = `https://api.z-api.io/instances/${instanceId}/token/${token}`;\n\nlet endpoint = '';\nlet body = {};\n\nswitch (input.type || 'text') {\n  case 'text':\n    endpoint = '/send-text';\n    body = { phone, message: input.message, delayTyping: 8 };\n    break;\n  case 'image':\n    endpoint = '/send-image';\n    body = { phone, image: input.media_url, caption: input.message || '', delayTyping: 5 };\n    break;\n  case 'document':\n    endpoint = '/send-document/pdf';\n    body = { phone, document: input.media_url, fileName: input.file_name || 'documento.pdf', caption: input.message || '', delayTyping: 3 };\n    break;\n  case 'video':\n    endpoint = '/send-video';\n    body = { phone, video: input.media_url, caption: input.message || '', delayTyping: 5 };\n    break;\n  case 'audio':\n    endpoint = '/send-audio';\n    body = { phone, audio: input.audio_url, delayTyping: 8 };\n    break;\n  case 'buttons':\n    endpoint = '/send-button-list';\n    body = { phone, message: input.message, buttonList: { buttons: (input.buttons || []).map(b => ({ id: b.id, label: b.label })) }, delayTyping: 5 };\n    break;\n  case 'list':\n    endpoint = '/send-option-list';\n    body = { phone, optionList: { title: input.list_title || 'Opcoes', message: input.message, footer: input.footer || 'BR Academy', buttonLabel: input.button_label || 'Ver opcoes', options: input.options || [] }, delayTyping: 5 };\n    break;\n  default:\n    endpoint = '/send-text';\n    body = { phone, message: input.message, delayTyping: 8 };\n}\n\nreturn [{ json: { url: baseUrl + endpoint, body, phone, type: input.type || 'text', clientToken } }];"
+        "jsCode": "const input = $input.first().json;\nconst phone = input.phone;\nconst instanceId = $env.ZAPI_INSTANCE_ID;\nconst token = $env.ZAPI_TOKEN;\nconst clientToken = $env.ZAPI_CLIENT_TOKEN;\nconst baseUrl = `https://api.z-api.io/instances/${instanceId}/token/${token}`;\n\nlet endpoint = '';\nlet body = {};\n\nswitch (input.type || 'text') {\n  case 'text':\n    endpoint = '/send-text';\n    body = { phone, message: input.message, delayTyping: 8 };\n    break;\n  case 'image':\n    endpoint = '/send-image';\n    body = { phone, image: input.media_url, caption: input.message || '', delayTyping: 5 };\n    break;\n  case 'document':\n    endpoint = '/send-document/pdf';\n    body = { phone, document: input.media_url, fileName: input.file_name || 'documento.pdf', caption: input.message || '', delayTyping: 3 };\n    break;\n  case 'video':\n    endpoint = '/send-video';\n    body = { phone, video: input.media_url, caption: input.message || '', delayTyping: 5 };\n    break;\n  case 'audio':\n    endpoint = '/send-audio';\n    body = { phone, audio: input.audio_url, delayTyping: 8 };\n    break;\n  default:\n    endpoint = '/send-text';\n    body = { phone, message: input.message, delayTyping: 8 };\n}\n\nreturn [{ json: { url: baseUrl + endpoint, body, phone, type: input.type || 'text', clientToken } }];"
       },
-      "id": "zapi-send-router",
+      "id": "6629d48d-caae-4bfe-9d3a-272644c37b40",
       "name": "Z-API Send Router",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -834,7 +568,7 @@
         "jsonBody": "={{ JSON.stringify($json.body) }}",
         "options": {}
       },
-      "id": "zapi-send-execute",
+      "id": "b29d0e43-ff38-41d1-afc9-23a76714df18",
       "name": "Z-API Send Execute",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -849,26 +583,13 @@
         "responseBody": "={{ JSON.stringify({ success: true, zapiResponse: $json }) }}",
         "options": {}
       },
-      "id": "zapi-send-response",
+      "id": "49f047da-1036-432d-a722-669f13a4f0fa",
       "name": "Send Response",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
         -200,
         1200
-      ]
-    },
-    {
-      "parameters": {
-        "jsCode": "return $input.all();"
-      },
-      "id": "collect-text",
-      "name": "Collect Text",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        900,
-        300
       ]
     }
   ],
@@ -911,65 +632,36 @@
       "main": [
         [
           {
-            "node": "Switch Message Type",
+            "node": "Classify Message",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Switch Message Type": {
+    "Classify Message": {
       "main": [
         [
           {
-            "node": "Prepare Audio Download",
+            "node": "Is Audio?",
             "type": "main",
             "index": 0
           }
-        ],
-        [
-          {
-            "node": "Set Texto Text",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Set Texto Image",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Set Texto Video",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Set Texto Document",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Set Texto Button List",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        []
+        ]
       ]
     },
-    "Prepare Audio Download": {
+    "Is Audio?": {
       "main": [
         [
           {
             "node": "Download Audio",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Redis Push Message",
             "type": "main",
             "index": 0
           }
@@ -1002,62 +694,7 @@
       "main": [
         [
           {
-            "node": "Collect Text",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Set Texto Text": {
-      "main": [
-        [
-          {
-            "node": "Collect Text",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Set Texto Image": {
-      "main": [
-        [
-          {
-            "node": "Collect Text",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Set Texto Video": {
-      "main": [
-        [
-          {
-            "node": "Collect Text",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Set Texto Document": {
-      "main": [
-        [
-          {
-            "node": "Collect Text",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Set Texto Button List": {
-      "main": [
-        [
-          {
-            "node": "Collect Text",
+            "node": "Redis Push Message",
             "type": "main",
             "index": 0
           }
@@ -1090,32 +727,32 @@
       "main": [
         [
           {
-            "node": "Should This Execution Process?",
+            "node": "Should Process?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Should This Execution Process?": {
+    "Should Process?": {
       "main": [
         [
           {
-            "node": "Redis Delete List",
+            "node": "Redis Delete",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Stop - Another Execution Handles",
+            "node": "Stop",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Redis Delete List": {
+    "Redis Delete": {
       "main": [
         [
           {
@@ -1237,17 +874,6 @@
         [
           {
             "node": "Send Response",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Collect Text": {
-      "main": [
-        [
-          {
-            "node": "Redis Push Message",
             "type": "main",
             "index": 0
           }
