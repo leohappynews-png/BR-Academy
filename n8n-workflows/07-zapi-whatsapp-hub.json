@@ -4,7 +4,7 @@
     {
       "parameters": {
         "httpMethod": "POST",
-        "path": "br-academy-zapi-receive",
+        "path": "br-academy-zapi-receiver",
         "options": {}
       },
       "id": "9bf15f01-ba56-47dc-a257-953321cd7275",
@@ -365,8 +365,8 @@
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "CONFIGURE_ME",
-          "name": "Google Sheets"
+          "id": "ImmGD20IqQ0YAOHZ",
+          "name": "Google Sheets leohappynews@gmail"
         }
       }
     },
@@ -445,8 +445,8 @@
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "CONFIGURE_ME",
-          "name": "Google Sheets"
+          "id": "ImmGD20IqQ0YAOHZ",
+          "name": "Google Sheets leohappynews@gmail"
         }
       }
     },
@@ -498,8 +498,8 @@
       ],
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "CONFIGURE_ME",
-          "name": "Google Sheets"
+          "id": "ImmGD20IqQ0YAOHZ",
+          "name": "Google Sheets leohappynews@gmail"
         }
       }
     },
