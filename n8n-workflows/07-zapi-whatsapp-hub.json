@@ -310,6 +310,19 @@
     },
     {
       "parameters": {
+        "jsCode": "const items = $input.all();\nconst context = $('Dedup & Merge').first().json;\n\nif (items.length === 0 || !items[0].json.lead_id) {\n  // No lead found — pass empty lead_id so Is New Lead? routes to true\n  return [{ json: { lead_id: '', phone: context.normalized_phone } }];\n}\n\n// Lead found — pass through\nreturn items;"
+      },
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "name": "Ensure Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2100,
+        300
+      ]
+    },
+    {
+      "parameters": {
         "conditions": {
           "options": {
             "caseSensitive": true,
@@ -337,7 +350,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        2200,
+        2300,
         300
       ]
     },
@@ -695,6 +708,17 @@
       ]
     },
     "Check Lead Exists": {
+      "main": [
+        [
+          {
+            "node": "Ensure Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ensure Result": {
       "main": [
         [
           {
