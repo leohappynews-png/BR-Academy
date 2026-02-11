@@ -1,0 +1,7 @@
+description,amount,currency,frequency,category,auto_record,next_date
+Aluguel espaco curso,0,EUR,monthly,rent,false,
+n8n hosting (Hostinger VPS),0,EUR,monthly,other,true,
+Z-API WhatsApp,0,BRL,monthly,other,true,
+OpenAI API,0,USD,monthly,other,true,
+Supabase (Postgres),0,USD,monthly,other,true,
+Upstash (Redis),0,USD,monthly,other,true,
