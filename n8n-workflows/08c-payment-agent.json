@@ -33,13 +33,20 @@
       "parameters": {
         "sessionIdType": "customKey",
         "sessionKey": "={{ $json.user_id }}",
-        "contextWindowLength": 35
+        "tableName": "n8n_chat_histories_bracademy",
+        "contextWindowLength": 15
       },
-      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
       "typeVersion": 1.3,
       "position": [64, 288],
       "id": "memory-payment",
-      "name": "Simple Memory"
+      "name": "Simple Memory",
+      "credentials": {
+        "postgres": {
+          "id": "CONFIGURE_ME",
+          "name": "Postgres BR Academy (Supabase)"
+        }
+      }
     },
     {
       "parameters": {},

@@ -12,7 +12,10 @@
       "name": "Webhook - AI Router",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [-400, 300]
+      "position": [
+        -400,
+        300
+      ]
     },
     {
       "parameters": {
@@ -22,21 +25,27 @@
       "name": "Build Context",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-160, 300]
+      "position": [
+        -160,
+        300
+      ]
     },
     {
       "parameters": {
         "promptType": "define",
         "text": "={{ $json.mensagem }}",
         "options": {
-          "systemMessage": "━━━━━━━━━━━━━━━━━━━━\nSYSTEM TIME CONTEXT\n━━━━━━━━━━━━━━━━━━━━\nData atual: {{ $now.format(\"yyyy-MM-dd\") }}\nHora atual: {{ $now.format(\"HH:mm\") }}\nTimezone: Europe/Dublin\n\n━━━━━━━━━━━━━━━━━━━━\nQUEM VOCE E\n━━━━━━━━━━━━━━━━━━━━\n\nVoce e a Ana, assistente virtual oficial da BR Academy - o primeiro e maior centro de treinamento de Bar Staff na Irlanda, Dublin.\n\nVoce e brasileira, ex-barista que morou em Dublin e entende perfeitamente a realidade dos intercambistas. Voce e calorosa, empatica, usa girias brasileiras com naturalidade e se conecta facilmente com outros brasileiros.\n\nVoce responde SEMPRE em portugues brasileiro.\nUse emojis com moderacao (maximo 3 por mensagem).\n\n━━━━━━━━━━━━━━━━━━━━\nSUA RESPONSABILIDADE\n━━━━━━━━━━━━━━━━━━━━\n\nVoce e a ORQUESTRADORA principal. Seu trabalho e:\n1. Entender a intencao do lead\n2. Responder diretamente quando for simples (saudacoes, info basica)\n3. Rotear para o sub-agente especialista quando necessario\n4. NUNCA mencionar sub-agentes, workflows ou logica interna para o lead\n\n━━━━━━━━━━━━━━━━━━━━\nCLASSIFICACAO DE INTENCAO\n━━━━━━━━━━━━━━━━━━━━\n\nClassifique cada mensagem em UMA categoria e use o sub-agente correto:\n\nA) VENDAS/INFO DO CURSO → Call 'sales_agent'\n   Quando: lead novo, perguntas sobre curso, precos, o que e a BR Academy, objecoes\n\nB) AGENDAMENTO → Call 'scheduling_agent'\n   Quando: perguntas sobre datas, horarios, vagas, proxima turma\n\nC) PAGAMENTO → Call 'payment_agent'\n   Quando: como pagar, formas de pagamento, parcelamento, desconto, comprovante\n\nD) SUPORTE → Call 'support_agent'\n   Quando: aluno matriculado, duvidas pre-curso, o que levar, endereco, cancelamento\n\nE) ALUMNI → Call 'alumni_agent'\n   Quando: ex-aluno, dicas emprego, indicacao, cursos avancados\n\nF) SAUDACAO/GERAL → Responda voce mesma diretamente\n   Quando: oi, ola, bom dia, obrigado, tchau, perguntas genericas\n\nG) ESCALACAO HUMANA → Responda que vai transferir e inclua [ESCALACAO_HUMANA] no final\n   Quando: reclamacao seria, pedido explicito de falar com humano, assunto muito complexo\n\nSe mais de um topico for detectado, pergunte qual deve ser tratado primeiro.\n\n━━━━━━━━━━━━━━━━━━━━\nREGRAS DE ROTEAMENTO\n━━━━━━━━━━━━━━━━━━━━\n\nAo chamar um sub-agente, envie:\n- request: a mensagem do lead + contexto relevante\n- user_id: o telefone do lead (para rastreamento de sessao)\n\nNUNCA mencione sub-agentes, workflows ou logica interna para o lead.\nApresente a resposta do sub-agente como se fosse sua propria resposta.\n\nContexto do lead baseado no stage:\n- new_lead/contacted → Provavelmente precisa de sales_agent\n- qualified/proposal_sent/negotiation → sales_agent ou payment_agent\n- enrolled/pre_course → support_agent\n- in_course → support_agent\n- completed/alumni → alumni_agent\n\n━━━━━━━━━━━━━━━━━━━━\nINFO RAPIDA DA BR ACADEMY\n━━━━━━━━━━━━━━━━━━━━\n\n- Curso pratico e teorico de Bar Staff\n- Duracao: 2 dias intensivos (Sab-Dom, 10h-17h)\n- Local: Dublin city centre\n- Max 15 alunos por turma\n- Preco: EUR 250 (early bird EUR 199)\n- Inclui: certificado, kit bartender, grupo alumni\n- +500 formados, 85% empregados em 30 dias\n\n━━━━━━━━━━━━━━━━━━━━\nFORMATO DA RESPOSTA\n━━━━━━━━━━━━━━━━━━━━\n\n- Maximo 4 paragrafos curtos\n- Termine sempre com uma pergunta ou CTA (call to action)\n- Portugues brasileiro natural, nao robotico\n- NUNCA invente informacoes\n\nNo FINAL de TODA resposta, em linha separada, inclua metadata:\n[STAGE:stage_atual|FOLLOWUP:horas|SCORE_DELTA:+/-N]\n\nExemplos:\n[STAGE:contacted|FOLLOWUP:24|SCORE_DELTA:+10]\n[STAGE:qualified|FOLLOWUP:4|SCORE_DELTA:+15]\n"
+          "systemMessage": "━━━━━━━━━━━━━━━━━━━━\nSYSTEM TIME CONTEXT\n━━━━━━━━━━━━━━━━━━━━\nData atual: {{ $now.format(\"yyyy-MM-dd\") }}\nHora atual: {{ $now.format(\"HH:mm\") }}\nTimezone: Europe/Dublin\n\n━━━━━━━━━━━━━━━━━━━━\nQUEM VOCE E\n━━━━━━━━━━━━━━━━━━━━\n\nVoce e a Ana, assistente virtual oficial da BR Academy - o primeiro e maior centro de treinamento de Bar Staff na Irlanda, Dublin.\n\nVoce e brasileira, ex-barista que morou em Dublin e entende perfeitamente a realidade dos intercambistas. Voce e calorosa, empatica, usa girias brasileiras com naturalidade e se conecta facilmente com outros brasileiros.\n\nVoce responde SEMPRE em portugues brasileiro.\nUse emojis com moderacao (maximo 3 por mensagem).\n\n━━━━━━━━━━━━━━━━━━━━\nSUA RESPONSABILIDADE\n━━━━━━━━━━━━━━━━━━━━\n\nVoce e a ORQUESTRADORA principal. Seu trabalho e:\n1. Entender a intencao do lead\n2. Responder diretamente quando for simples (saudacoes, info basica)\n3. Rotear para o sub-agente especialista quando necessario\n4. NUNCA mencionar sub-agentes, workflows ou logica interna para o lead\n\n━━━━━━━━━━━━━━━━━━━━\nCLASSIFICACAO DE INTENCAO\n━━━━━━━━━━━━━━━━━━━━\n\nClassifique cada mensagem em UMA categoria e use o sub-agente correto:\n\nA) VENDAS/INFO DO CURSO → Call 'sales_agent'\n   Quando: lead novo, perguntas sobre curso, precos, o que e a BR Academy, objecoes\n\nB) AGENDAMENTO → Call 'scheduling_agent'\n   Quando: perguntas sobre datas, horarios, vagas, proxima turma\n\nC) PAGAMENTO → Call 'payment_agent'\n   Quando: como pagar, formas de pagamento, parcelamento, desconto, comprovante\n\nD) SUPORTE → Call 'support_agent'\n   Quando: aluno matriculado, duvidas pre-curso, o que levar, endereco, cancelamento\n\nE) ALUMNI → Call 'alumni_agent'\n   Quando: ex-aluno, dicas emprego, indicacao, cursos avancados\n\nF) SAUDACAO/GERAL → Responda voce mesma diretamente\n   Quando: oi, ola, bom dia, obrigado, tchau, perguntas genericas\n\nG) ESCALACAO HUMANA → Responda que vai transferir e inclua [ESCALACAO_HUMANA] no final\n   Quando: reclamacao seria, pedido explicito de falar com humano, assunto muito complexo\n\nH) EMAIL → Use a tool 'Enviar Email' diretamente\n   Quando: lead pede confirmacao por email, precisa de recibo, documentos\n   Sempre pergunte o email do lead antes de enviar.\n\nSe mais de um topico for detectado, pergunte qual deve ser tratado primeiro.\n\n━━━━━━━━━━━━━━━━━━━━\nREGRAS DE ROTEAMENTO\n━━━━━━━━━━━━━━━━━━━━\n\nAo chamar um sub-agente, envie:\n- request: a mensagem do lead + contexto relevante\n- user_id: o telefone do lead (para rastreamento de sessao)\n\nNUNCA mencione sub-agentes, workflows ou logica interna para o lead.\nApresente a resposta do sub-agente como se fosse sua propria resposta.\n\nContexto do lead baseado no stage:\n- new_lead/contacted → Provavelmente precisa de sales_agent\n- qualified/proposal_sent/negotiation → sales_agent ou payment_agent\n- enrolled/pre_course → support_agent\n- in_course → support_agent\n- completed/alumni → alumni_agent\n\n━━━━━━━━━━━━━━━━━━━━\nINFO RAPIDA DA BR ACADEMY\n━━━━━━━━━━━━━━━━━━━━\n\n- Curso pratico e teorico de Bar Staff\n- Duracao: 2 dias intensivos (Sab-Dom, 10h-17h)\n- Local: Dublin city centre\n- Max 15 alunos por turma\n- Preco: EUR 250 (early bird EUR 199)\n- Inclui: certificado, kit bartender, grupo alumni\n- +500 formados, 85% empregados em 30 dias\n\n━━━━━━━━━━━━━━━━━━━━\nFORMATO DA RESPOSTA\n━━━━━━━━━━━━━━━━━━━━\n\n- Maximo 4 paragrafos curtos\n- Termine sempre com uma pergunta ou CTA (call to action)\n- Portugues brasileiro natural, nao robotico\n- NUNCA invente informacoes\n\nNo FINAL de TODA resposta, em linha separada, inclua metadata:\n[STAGE:stage_atual|FOLLOWUP:horas|SCORE_DELTA:+/-N]\n\nExemplos:\n[STAGE:contacted|FOLLOWUP:24|SCORE_DELTA:+10]\n[STAGE:qualified|FOLLOWUP:4|SCORE_DELTA:+15]\n"
         }
       },
       "id": "agent-ana-main",
       "name": "Ana - BR Academy",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3,
-      "position": [120, 300]
+      "position": [
+        120,
+        300
+      ]
     },
     {
       "parameters": {
@@ -52,7 +61,10 @@
       "name": "OpenAI Chat Model",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.3,
-      "position": [0, 520],
+      "position": [
+        0,
+        520
+      ],
       "credentials": {
         "openAiApi": {
           "id": "5PEAWngkRN6csObe",
@@ -64,13 +76,23 @@
       "parameters": {
         "sessionIdType": "customKey",
         "sessionKey": "={{ $('Build Context').item.json.phone }}",
+        "tableName": "n8n_chat_histories_bracademy",
         "contextWindowLength": 15
       },
-      "id": "memory-main-router",
-      "name": "Simple Memory",
-      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
       "typeVersion": 1.3,
-      "position": [160, 640]
+      "id": "memory-main-router",
+      "name": "Postgres Chat Memory",
+      "position": [
+        160,
+        640
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "CONFIGURE_ME",
+          "name": "Postgres BR Academy (Supabase)"
+        }
+      }
     },
     {
       "parameters": {},
@@ -78,16 +100,19 @@
       "name": "Think",
       "type": "@n8n/n8n-nodes-langchain.toolThink",
       "typeVersion": 1,
-      "position": [320, 520]
+      "position": [
+        320,
+        520
+      ]
     },
     {
       "parameters": {
         "description": "Especialista em vendas da BR Academy. Chame quando o lead:\n- Pergunta sobre o curso, precos, o que inclui\n- E um lead novo querendo informacoes\n- Tem objecoes (preco, timing, medo)\n- Precisa ser qualificado e convertido\n\nEnvie a mensagem completa do lead como 'request' e o telefone como 'user_id'.",
         "workflowId": {
           "__rl": true,
-          "value": "N5YyQUYSnr3vI2ZI",
+          "value": "rfJa7HiRItRcc3C5",
           "mode": "list",
-          "cachedResultUrl": "/workflow/N5YyQUYSnr3vI2ZI",
+          "cachedResultUrl": "/workflow/rfJa7HiRItRcc3C5",
           "cachedResultName": "BR Academy - Sales Agent (Ana)"
         },
         "workflowInputs": {
@@ -98,8 +123,26 @@
           },
           "matchingColumns": [],
           "schema": [
-            { "id": "request", "displayName": "request", "required": false, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string", "removed": false },
-            { "id": "user_id", "displayName": "user_id", "required": false, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string", "removed": false }
+            {
+              "id": "request",
+              "displayName": "request",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
           ],
           "attemptToConvertTypes": false,
           "convertFieldsToString": false
@@ -109,16 +152,19 @@
       "name": "Call 'sales_agent'",
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 2.2,
-      "position": [-120, 720]
+      "position": [
+        -120,
+        720
+      ]
     },
     {
       "parameters": {
         "description": "Especialista em agendamento da BR Academy. Chame quando o lead:\n- Pergunta sobre datas disponiveis do curso\n- Quer saber horarios\n- Pergunta sobre vagas\n- Quer escolher ou trocar a data da turma\n\nEnvie a mensagem completa do lead como 'request' e o telefone como 'user_id'.",
         "workflowId": {
           "__rl": true,
-          "value": "IovMkqB7hOZnjG0B",
+          "value": "8U6g32dbb7tzKcbZ",
           "mode": "list",
-          "cachedResultUrl": "/workflow/IovMkqB7hOZnjG0B",
+          "cachedResultUrl": "/workflow/8U6g32dbb7tzKcbZ",
           "cachedResultName": "BR Academy - Scheduling Agent"
         },
         "workflowInputs": {
@@ -129,8 +175,26 @@
           },
           "matchingColumns": [],
           "schema": [
-            { "id": "request", "displayName": "request", "required": false, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string", "removed": false },
-            { "id": "user_id", "displayName": "user_id", "required": false, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string", "removed": false }
+            {
+              "id": "request",
+              "displayName": "request",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
           ],
           "attemptToConvertTypes": false,
           "convertFieldsToString": false
@@ -140,16 +204,19 @@
       "name": "Call 'scheduling_agent'",
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 2.2,
-      "position": [20, 720]
+      "position": [
+        20,
+        720
+      ]
     },
     {
       "parameters": {
         "description": "Especialista em pagamentos da BR Academy. Chame quando o lead:\n- Pergunta como pagar\n- Quer saber formas de pagamento (Revolut, cartao, PIX, transferencia)\n- Pergunta sobre parcelamento\n- Quer saber sobre descontos\n- Precisa enviar comprovante\n\nEnvie a mensagem completa do lead como 'request' e o telefone como 'user_id'.",
         "workflowId": {
           "__rl": true,
-          "value": "h0znupBJDaH8Rmgz",
+          "value": "uQjgKgkJhCwKC4bb",
           "mode": "list",
-          "cachedResultUrl": "/workflow/h0znupBJDaH8Rmgz",
+          "cachedResultUrl": "/workflow/uQjgKgkJhCwKC4bb",
           "cachedResultName": "BR Academy - Payment Agent"
         },
         "workflowInputs": {
@@ -160,8 +227,26 @@
           },
           "matchingColumns": [],
           "schema": [
-            { "id": "request", "displayName": "request", "required": false, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string", "removed": false },
-            { "id": "user_id", "displayName": "user_id", "required": false, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string", "removed": false }
+            {
+              "id": "request",
+              "displayName": "request",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
           ],
           "attemptToConvertTypes": false,
           "convertFieldsToString": false
@@ -171,16 +256,19 @@
       "name": "Call 'payment_agent'",
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 2.2,
-      "position": [160, 720]
+      "position": [
+        160,
+        720
+      ]
     },
     {
       "parameters": {
         "description": "Especialista em suporte pre-curso da BR Academy. Chame quando o lead:\n- Ja esta matriculado e tem duvidas\n- Pergunta o que levar, como chegar, dress code\n- Pergunta sobre cancelamento ou reagendamento\n- Tem duvidas praticas sobre o dia do curso\n\nEnvie a mensagem completa do lead como 'request' e o telefone como 'user_id'.",
         "workflowId": {
           "__rl": true,
-          "value": "vdJ6qS1SNFqDqpMS",
+          "value": "q409gPdj34IhKVrE",
           "mode": "list",
-          "cachedResultUrl": "/workflow/vdJ6qS1SNFqDqpMS",
+          "cachedResultUrl": "/workflow/q409gPdj34IhKVrE",
           "cachedResultName": "BR Academy - Support Agent"
         },
         "workflowInputs": {
@@ -191,8 +279,26 @@
           },
           "matchingColumns": [],
           "schema": [
-            { "id": "request", "displayName": "request", "required": false, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string", "removed": false },
-            { "id": "user_id", "displayName": "user_id", "required": false, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string", "removed": false }
+            {
+              "id": "request",
+              "displayName": "request",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
           ],
           "attemptToConvertTypes": false,
           "convertFieldsToString": false
@@ -202,16 +308,19 @@
       "name": "Call 'support_agent'",
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 2.2,
-      "position": [300, 720]
+      "position": [
+        300,
+        720
+      ]
     },
     {
       "parameters": {
         "description": "Especialista em pos-curso e alumni da BR Academy. Chame quando o lead:\n- Ja concluiu o curso\n- Precisa de dicas para encontrar emprego em bares\n- Pergunta sobre programa de indicacao\n- Quer saber sobre cursos avancados (upsell)\n- Pergunta sobre o grupo alumni\n\nEnvie a mensagem completa do lead como 'request' e o telefone como 'user_id'.",
         "workflowId": {
           "__rl": true,
-          "value": "ZpN1oB8Y3iQx7qPl",
+          "value": "iCXvYNx99r8wdG7j",
           "mode": "list",
-          "cachedResultUrl": "/workflow/ZpN1oB8Y3iQx7qPl",
+          "cachedResultUrl": "/workflow/iCXvYNx99r8wdG7j",
           "cachedResultName": "BR Academy - Alumni Agent"
         },
         "workflowInputs": {
@@ -222,8 +331,26 @@
           },
           "matchingColumns": [],
           "schema": [
-            { "id": "request", "displayName": "request", "required": false, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string", "removed": false },
-            { "id": "user_id", "displayName": "user_id", "required": false, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string", "removed": false }
+            {
+              "id": "request",
+              "displayName": "request",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
           ],
           "attemptToConvertTypes": false,
           "convertFieldsToString": false
@@ -233,7 +360,32 @@
       "name": "Call 'alumni_agent'",
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 2.2,
-      "position": [440, 720]
+      "position": [
+        440,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('to_email', 'Email address to send to', 'string') }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('subject', 'Email subject line', 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('body', 'Email body in HTML', 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "id": "tool-gmail-send",
+      "name": "Enviar Email",
+      "position": [
+        580,
+        720
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "CONFIGURE_ME",
+          "name": "Gmail BR Academy"
+        }
+      }
     },
     {
       "parameters": {
@@ -243,7 +395,36 @@
       "name": "Process Response",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [400, 300]
+      "position": [
+        400,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const text = $input.first().json.response_message || '';\n\n// Normalize line breaks\nconst normalized = String(text)\n  .replace(/\\r\\n/g, '\\n')\n  .replace(/\\r/g, '\\n')\n  .trim();\n\n// Split by paragraphs (double line breaks)\nlet parts = normalized\n  .split(/\\n\\s*\\n+/)\n  .map(p => p.trim())\n  .filter(Boolean);\n\n// Fallback: split by single line breaks if only 1 part\nif (parts.length <= 1) {\n  parts = normalized\n    .split('\\n')\n    .map(p => p.trim())\n    .filter(Boolean);\n}\n\n// If still 1 part and long (>300 chars), split by sentences\nif (parts.length <= 1 && normalized.length > 300) {\n  parts = normalized\n    .split(/(?<=[.!?])\\s+/)\n    .reduce((acc, sentence) => {\n      const last = acc[acc.length - 1];\n      if (last && (last + ' ' + sentence).length < 200) {\n        acc[acc.length - 1] = last + ' ' + sentence;\n      } else {\n        acc.push(sentence);\n      }\n      return acc;\n    }, []);\n}\n\nconst context = $('Process Response').first().json;\n\nreturn parts.map(p => ({\n  json: {\n    Mensagem: p,\n    phone: context.phone,\n    lead_id: context.lead_id,\n    name: context.name,\n    suggested_stage: context.suggested_stage,\n    new_score: context.new_score,\n    follow_up_hours: context.follow_up_hours,\n    notify_admin: context.notify_admin,\n    escalation_reason: context.escalation_reason,\n    original_message: context.original_message\n  }\n}));"
+      },
+      "id": "code-quebra-texto",
+      "name": "Quebra Texto",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "loop-send-messages",
+      "name": "Send Messages Loop",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        900,
+        300
+      ]
     },
     {
       "parameters": {
@@ -251,26 +432,37 @@
         "url": "={{$env.N8N_WEBHOOK_BASE_URL}}/webhook/br-academy-zapi-send",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"phone\": \"{{ $json.phone }}\",\n  \"message\": {{ JSON.stringify($json.response_message) }},\n  \"type\": \"text\"\n}",
+        "jsonBody": "={\n  \"phone\": \"{{ $json.phone }}\",\n  \"message\": {{ JSON.stringify($json.Mensagem) }},\n  \"type\": \"text\",\n  \"delayTyping\": 3\n}",
         "options": {}
       },
       "id": "http-send-zapi",
       "name": "Send via Z-API",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [660, 180]
+      "position": [
+        1140,
+        180
+      ]
     },
     {
       "parameters": {
         "operation": "append",
-        "documentId": { "__rl": true, "mode": "id", "value": "={{$env.GOOGLE_SHEET_LEADS_ID}}" },
-        "sheetName": { "__rl": true, "mode": "gid", "value": "conversation_history" },
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{$env.GOOGLE_SHEET_LEADS_ID}}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "gid",
+          "value": "conversation_history"
+        },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "lead_id": "={{ $json.lead_id }}",
+            "lead_id": "={{ $('Process Response').first().json.lead_id }}",
             "role": "assistant",
-            "message": "={{ $json.response_message }}",
+            "message": "={{ $('Process Response').first().json.response_message }}",
             "channel": "whatsapp",
             "timestamp": "={{ $now.toISO() }}"
           }
@@ -281,24 +473,42 @@
       "name": "Save AI Response",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
-      "position": [660, 330],
-      "credentials": { "googleSheetsOAuth2Api": { "id": "CONFIGURE_ME", "name": "Google Sheets" } }
+      "position": [
+        1140,
+        420
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "CONFIGURE_ME",
+          "name": "Google Sheets"
+        }
+      }
     },
     {
       "parameters": {
         "operation": "appendOrUpdate",
-        "documentId": { "__rl": true, "mode": "id", "value": "={{$env.GOOGLE_SHEET_LEADS_ID}}" },
-        "sheetName": { "__rl": true, "mode": "gid", "value": "0" },
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{$env.GOOGLE_SHEET_LEADS_ID}}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "gid",
+          "value": "0"
+        },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "lead_id": "={{ $json.lead_id }}",
-            "stage": "={{ $json.suggested_stage }}",
-            "score": "={{ $json.new_score }}",
+            "lead_id": "={{ $('Process Response').first().json.lead_id }}",
+            "stage": "={{ $('Process Response').first().json.suggested_stage }}",
+            "score": "={{ $('Process Response').first().json.new_score }}",
             "updated_at": "={{ $now.toISO() }}",
-            "next_follow_up": "={{ $now.plus({ hours: $json.follow_up_hours }).toISO() }}"
+            "next_follow_up": "={{ $now.plus({ hours: $('Process Response').first().json.follow_up_hours }).toISO() }}"
           },
-          "matchingColumns": ["lead_id"]
+          "matchingColumns": [
+            "lead_id"
+          ]
         },
         "options": {}
       },
@@ -306,8 +516,16 @@
       "name": "Update Lead Data",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
-      "position": [660, 480],
-      "credentials": { "googleSheetsOAuth2Api": { "id": "CONFIGURE_ME", "name": "Google Sheets" } }
+      "position": [
+        1380,
+        420
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "CONFIGURE_ME",
+          "name": "Google Sheets"
+        }
+      }
     },
     {
       "parameters": {
@@ -318,12 +536,17 @@
             "typeValidation": "strict",
             "version": 2
           },
-          "conditions": [{
-            "id": "check-admin-notify",
-            "leftValue": "={{ $json.notify_admin }}",
-            "rightValue": true,
-            "operator": { "type": "boolean", "operation": "equals" }
-          }],
+          "conditions": [
+            {
+              "id": "check-admin-notify",
+              "leftValue": "={{ $('Process Response').first().json.notify_admin }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
           "combinator": "and"
         },
         "options": {}
@@ -332,7 +555,10 @@
       "name": "Needs Admin?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [900, 300]
+      "position": [
+        1620,
+        420
+      ]
     },
     {
       "parameters": {
@@ -340,14 +566,17 @@
         "url": "={{$env.N8N_WEBHOOK_BASE_URL}}/webhook/br-academy-zapi-send",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"phone\": \"{{$env.BR_ACADEMY_ADMIN_PHONE}}\",\n  \"message\": \"ESCALACAO HUMANA\\n\\nLead: {{ $json.name }}\\nTel: {{ $json.phone }}\\nMotivo: {{ $json.escalation_reason }}\\nMsg original: {{ $json.original_message }}\",\n  \"type\": \"text\"\n}",
+        "jsonBody": "={\n  \"phone\": \"{{$env.BR_ACADEMY_ADMIN_PHONE}}\",\n  \"message\": \"ESCALACAO HUMANA\\n\\nLead: {{ $('Process Response').first().json.name }}\\nTel: {{ $('Process Response').first().json.phone }}\\nMotivo: {{ $('Process Response').first().json.escalation_reason }}\\nMsg original: {{ $('Process Response').first().json.original_message }}\",\n  \"type\": \"text\"\n}",
         "options": {}
       },
       "id": "http-notify-admin",
       "name": "Notify Admin WhatsApp",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1140, 240]
+      "position": [
+        1860,
+        360
+      ]
     },
     {
       "parameters": {
@@ -359,60 +588,249 @@
       "name": "Router Response",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [1140, 400]
+      "position": [
+        1860,
+        520
+      ]
     }
   ],
   "connections": {
     "Webhook - AI Router": {
-      "main": [[{ "node": "Build Context", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Build Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Build Context": {
-      "main": [[{ "node": "Ana - BR Academy", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Ana - BR Academy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "OpenAI Chat Model": {
-      "ai_languageModel": [[{ "node": "Ana - BR Academy", "type": "ai_languageModel", "index": 0 }]]
+      "ai_languageModel": [
+        [
+          {
+            "node": "Ana - BR Academy",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
     },
-    "Simple Memory": {
-      "ai_memory": [[{ "node": "Ana - BR Academy", "type": "ai_memory", "index": 0 }]]
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Ana - BR Academy",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Think": {
-      "ai_tool": [[{ "node": "Ana - BR Academy", "type": "ai_tool", "index": 0 }]]
+      "ai_tool": [
+        [
+          {
+            "node": "Ana - BR Academy",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Call 'sales_agent'": {
-      "ai_tool": [[{ "node": "Ana - BR Academy", "type": "ai_tool", "index": 0 }]]
+      "ai_tool": [
+        [
+          {
+            "node": "Ana - BR Academy",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Call 'scheduling_agent'": {
-      "ai_tool": [[{ "node": "Ana - BR Academy", "type": "ai_tool", "index": 0 }]]
+      "ai_tool": [
+        [
+          {
+            "node": "Ana - BR Academy",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Call 'payment_agent'": {
-      "ai_tool": [[{ "node": "Ana - BR Academy", "type": "ai_tool", "index": 0 }]]
+      "ai_tool": [
+        [
+          {
+            "node": "Ana - BR Academy",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Call 'support_agent'": {
-      "ai_tool": [[{ "node": "Ana - BR Academy", "type": "ai_tool", "index": 0 }]]
+      "ai_tool": [
+        [
+          {
+            "node": "Ana - BR Academy",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Call 'alumni_agent'": {
-      "ai_tool": [[{ "node": "Ana - BR Academy", "type": "ai_tool", "index": 0 }]]
+      "ai_tool": [
+        [
+          {
+            "node": "Ana - BR Academy",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Email": {
+      "ai_tool": [
+        [
+          {
+            "node": "Ana - BR Academy",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Ana - BR Academy": {
-      "main": [[{ "node": "Process Response", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Process Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Process Response": {
-      "main": [[
-        { "node": "Send via Z-API", "type": "main", "index": 0 },
-        { "node": "Save AI Response", "type": "main", "index": 0 },
-        { "node": "Update Lead Data", "type": "main", "index": 0 },
-        { "node": "Needs Admin?", "type": "main", "index": 0 }
-      ]]
+      "main": [
+        [
+          {
+            "node": "Quebra Texto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Quebra Texto": {
+      "main": [
+        [
+          {
+            "node": "Send Messages Loop",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Messages Loop": {
+      "main": [
+        [
+          {
+            "node": "Send via Z-API",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Save AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send via Z-API": {
+      "main": [
+        [
+          {
+            "node": "Send Messages Loop",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save AI Response": {
+      "main": [
+        [
+          {
+            "node": "Update Lead Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Lead Data": {
+      "main": [
+        [
+          {
+            "node": "Needs Admin?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Needs Admin?": {
       "main": [
-        [{ "node": "Notify Admin WhatsApp", "type": "main", "index": 0 }],
-        [{ "node": "Router Response", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Notify Admin WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Router Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Notify Admin WhatsApp": {
-      "main": [[{ "node": "Router Response", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Router Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "settings": { "executionOrder": "v1" }
+  "settings": {
+    "executionOrder": "v1"
+  }
 }

@@ -1,0 +1,318 @@
+{
+  "name": "BR Academy - 09 Gmail Monitor",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [{ "mode": "everyMinute" }]
+        },
+        "filters": {
+          "readStatus": "unread",
+          "receivedAfter": ""
+        },
+        "options": {
+          "downloadAttachments": false
+        }
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [-400, 300],
+      "id": "gmail-trigger",
+      "name": "Gmail - New Email",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "CONFIGURE_ME",
+          "name": "Gmail BR Academy"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "gmail-filter-no-reply",
+              "leftValue": "={{ $json.from.toLowerCase() }}",
+              "rightValue": "noreply",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "gmail-filter-no-reply2",
+              "leftValue": "={{ $json.from.toLowerCase() }}",
+              "rightValue": "no-reply",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "gmail-filter-mailer",
+              "leftValue": "={{ $json.from.toLowerCase() }}",
+              "rightValue": "mailer-daemon",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [-200, 300],
+      "id": "gmail-filter-automated",
+      "name": "Filter Automated"
+    },
+    {
+      "parameters": {
+        "jsCode": "const email = $input.first().json;\n\n// Extract sender email\nconst fromRaw = email.from || '';\nconst emailMatch = fromRaw.match(/<([^>]+)>/) || [null, fromRaw];\nconst senderEmail = (emailMatch[1] || fromRaw).trim().toLowerCase();\n\n// Extract sender name\nconst nameMatch = fromRaw.match(/^([^<]+)/) || [null, ''];\nconst senderName = nameMatch[1].trim().replace(/\"/g, '') || senderEmail.split('@')[0];\n\n// Clean email body (remove HTML, keep text)\nlet body = email.text || email.snippet || '';\nbody = body.replace(/<[^>]*>/g, ' ').replace(/\\s+/g, ' ').trim();\n\n// Limit body length\nif (body.length > 1000) {\n  body = body.substring(0, 1000) + '... [email truncado]';\n}\n\nconst subject = email.subject || '(sem assunto)';\n\nreturn [{\n  json: {\n    sender_email: senderEmail,\n    sender_name: senderName,\n    subject: subject,\n    body: body,\n    message_id: email.id || email.messageId || '',\n    received_at: email.date || new Date().toISOString(),\n    full_message: `Assunto: ${subject}\\nDe: ${senderName} (${senderEmail})\\n\\n${body}`\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [0, 300],
+      "id": "gmail-parse-email",
+      "name": "Parse Email"
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{$env.GOOGLE_SHEET_LEADS_ID}}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "gid",
+          "value": "0"
+        },
+        "options": {
+          "filters": {
+            "filter": [
+              {
+                "lookupColumn": "email",
+                "lookupValue": "={{ $('Parse Email').item.json.sender_email }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [200, 300],
+      "id": "gmail-sheets-check-lead",
+      "name": "Check Lead by Email",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "CONFIGURE_ME",
+          "name": "Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const email = $('Parse Email').first().json;\nconst leadResults = $('Check Lead by Email').all();\nconst leadData = leadResults.length > 0 ? leadResults[0].json : null;\n\nconst isNewLead = !leadData || !leadData.lead_id;\n\nreturn [{\n  json: {\n    lead_id: isNewLead ? `lead_email_${Date.now()}` : leadData.lead_id,\n    phone: leadData?.phone || '',\n    name: leadData?.lead_name || leadData?.name || email.sender_name,\n    stage: leadData?.lead_stage || leadData?.stage || 'new_lead',\n    score: leadData?.lead_score || leadData?.score || 0,\n    message: `[EMAIL RECEBIDO]\\n${email.full_message}`,\n    message_type: 'email',\n    is_new_lead: isNewLead,\n    channel: 'email',\n    sender_email: email.sender_email,\n    subject: email.subject\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [400, 300],
+      "id": "gmail-build-context",
+      "name": "Build Context"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "gmail-check-new-lead",
+              "leftValue": "={{ $json.is_new_lead }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [600, 300],
+      "id": "gmail-if-new-lead",
+      "name": "If New Lead"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{$env.GOOGLE_SHEET_LEADS_ID}}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "gid",
+          "value": "0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "lead_id": "={{ $json.lead_id }}",
+            "name": "={{ $json.name }}",
+            "email": "={{ $json.sender_email }}",
+            "phone": "",
+            "source": "email",
+            "stage": "new_lead",
+            "score": "0",
+            "created_at": "={{ $now.toISO() }}",
+            "updated_at": "={{ $now.toISO() }}"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [800, 200],
+      "id": "gmail-sheets-auto-register",
+      "name": "Auto-Register Email Lead",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "CONFIGURE_ME",
+          "name": "Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "chooseBranch",
+        "output": "empty"
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [1000, 300],
+      "id": "gmail-merge-branches",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.N8N_WEBHOOK_BASE_URL}}/webhook/br-academy-ai-router",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1200, 250],
+      "id": "gmail-http-send-to-router",
+      "name": "Send to AI Router"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{$env.GOOGLE_SHEET_LEADS_ID}}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "gid",
+          "value": "conversation_history"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "lead_id": "={{ $json.lead_id }}",
+            "role": "user",
+            "message": "={{ $('Parse Email').first().json.full_message }}",
+            "channel": "email",
+            "timestamp": "={{ $now.toISO() }}"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1200, 400],
+      "id": "gmail-sheets-save-history",
+      "name": "Save Email to History",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "CONFIGURE_ME",
+          "name": "Google Sheets"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Gmail - New Email": {
+      "main": [
+        [{ "node": "Filter Automated", "type": "main", "index": 0 }]
+      ]
+    },
+    "Filter Automated": {
+      "main": [
+        [{ "node": "Parse Email", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Parse Email": {
+      "main": [
+        [{ "node": "Check Lead by Email", "type": "main", "index": 0 }]
+      ]
+    },
+    "Check Lead by Email": {
+      "main": [
+        [{ "node": "Build Context", "type": "main", "index": 0 }]
+      ]
+    },
+    "Build Context": {
+      "main": [
+        [{ "node": "If New Lead", "type": "main", "index": 0 }]
+      ]
+    },
+    "If New Lead": {
+      "main": [
+        [{ "node": "Auto-Register Email Lead", "type": "main", "index": 0 }],
+        [{ "node": "Merge", "type": "main", "index": 1 }]
+      ]
+    },
+    "Auto-Register Email Lead": {
+      "main": [
+        [{ "node": "Merge", "type": "main", "index": 0 }]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          { "node": "Send to AI Router", "type": "main", "index": 0 },
+          { "node": "Save Email to History", "type": "main", "index": 0 }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
