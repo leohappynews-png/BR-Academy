@@ -11,7 +11,10 @@
       "name": "Webhook Receive",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [-800, 300]
+      "position": [
+        -800,
+        300
+      ]
     },
     {
       "parameters": {
@@ -21,7 +24,10 @@
       "name": "Parse Z-API Message",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-600, 300]
+      "position": [
+        -600,
+        300
+      ]
     },
     {
       "parameters": {
@@ -59,7 +65,10 @@
       "name": "Filter Valid Messages",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [-400, 300]
+      "position": [
+        -400,
+        300
+      ]
     },
     {
       "parameters": {
@@ -69,7 +78,10 @@
       "name": "Normalize Phone",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-200, 300]
+      "position": [
+        -200,
+        300
+      ]
     },
     {
       "parameters": {
@@ -196,7 +208,10 @@
       "name": "Switch Message Type",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3,
-      "position": [0, 300]
+      "position": [
+        0,
+        300
+      ]
     },
     {
       "parameters": {
@@ -214,7 +229,10 @@
       "name": "Download Audio",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [400, 100]
+      "position": [
+        400,
+        100
+      ]
     },
     {
       "parameters": {
@@ -226,7 +244,10 @@
       "name": "Transcribe Audio",
       "type": "@n8n/n8n-nodes-langchain.openAi",
       "typeVersion": 1.8,
-      "position": [600, 100],
+      "position": [
+        600,
+        100
+      ],
       "credentials": {
         "openAiApi": {
           "id": "5PEAWngkRN6csObe",
@@ -264,7 +285,10 @@
       "name": "Set Texto Audio",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [800, 100]
+      "position": [
+        800,
+        100
+      ]
     },
     {
       "parameters": {
@@ -296,7 +320,10 @@
       "name": "Set Texto Text",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [400, 300]
+      "position": [
+        400,
+        300
+      ]
     },
     {
       "parameters": {
@@ -328,7 +355,10 @@
       "name": "Set Texto Image",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [400, 500]
+      "position": [
+        400,
+        500
+      ]
     },
     {
       "parameters": {
@@ -360,7 +390,10 @@
       "name": "Set Texto Video",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [400, 700]
+      "position": [
+        400,
+        700
+      ]
     },
     {
       "parameters": {
@@ -392,7 +425,10 @@
       "name": "Set Texto Document",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [400, 900]
+      "position": [
+        400,
+        900
+      ]
     },
     {
       "parameters": {
@@ -424,7 +460,10 @@
       "name": "Set Texto Button List",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [400, 1100]
+      "position": [
+        400,
+        1100
+      ]
     },
     {
       "parameters": {
@@ -434,18 +473,10 @@
       "name": "Prepare Audio Download",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [200, 100]
-    },
-    {
-      "parameters": {
-        "mode": "chooseBranch",
-        "output": "wait"
-      },
-      "id": "merge-all-branches",
-      "name": "Merge All Branches",
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3,
-      "position": [1000, 300]
+      "position": [
+        200,
+        100
+      ]
     },
     {
       "parameters": {
@@ -458,7 +489,10 @@
       "name": "Redis Push Message",
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
-      "position": [1200, 300],
+      "position": [
+        1000,
+        300
+      ],
       "credentials": {
         "redis": {
           "id": "CONFIGURE_ME",
@@ -474,7 +508,10 @@
       "name": "Wait 8 Seconds",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
-      "position": [1400, 300],
+      "position": [
+        1200,
+        300
+      ],
       "webhookId": "wait-batch-bracademy"
     },
     {
@@ -488,7 +525,10 @@
       "name": "Pull Messages",
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
-      "position": [1600, 300],
+      "position": [
+        1400,
+        300
+      ],
       "credentials": {
         "redis": {
           "id": "CONFIGURE_ME",
@@ -503,7 +543,7 @@
           "conditions": [
             {
               "leftValue": "={{ $json.mensagens.split(',').pop().trim() }}",
-              "rightValue": "={{ $('Merge All Branches').item.json.texto }}",
+              "rightValue": "={{ $('Collect Text').item.json.texto }}",
               "operator": {
                 "type": "string",
                 "operation": "contains"
@@ -516,7 +556,10 @@
       "name": "Should This Execution Process?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [1800, 300]
+      "position": [
+        1600,
+        300
+      ]
     },
     {
       "parameters": {
@@ -527,7 +570,10 @@
       "name": "Redis Delete List",
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
-      "position": [2000, 200],
+      "position": [
+        1800,
+        200
+      ],
       "credentials": {
         "redis": {
           "id": "CONFIGURE_ME",
@@ -543,7 +589,10 @@
       "name": "Merge Messages",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2200, 200]
+      "position": [
+        2000,
+        200
+      ]
     },
     {
       "parameters": {
@@ -573,7 +622,10 @@
       "name": "Check Lead Exists",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
-      "position": [2400, 200],
+      "position": [
+        2200,
+        200
+      ],
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "CONFIGURE_ME",
@@ -601,7 +653,10 @@
       "name": "Is New Lead?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [2600, 200]
+      "position": [
+        2400,
+        200
+      ]
     },
     {
       "parameters": {
@@ -611,7 +666,10 @@
       "name": "Auto-Register Lead",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2800, 100]
+      "position": [
+        2600,
+        100
+      ]
     },
     {
       "parameters": {
@@ -636,7 +694,10 @@
       "name": "Save New Lead",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
-      "position": [3000, 100],
+      "position": [
+        2800,
+        100
+      ],
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "CONFIGURE_ME",
@@ -652,7 +713,10 @@
       "name": "Build Router Payload",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [3200, 200]
+      "position": [
+        3000,
+        200
+      ]
     },
     {
       "parameters": {
@@ -683,7 +747,10 @@
       "name": "Save Messages",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
-      "position": [3400, 200],
+      "position": [
+        3200,
+        200
+      ],
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "CONFIGURE_ME",
@@ -704,7 +771,10 @@
       "name": "Send to AI Router",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [3600, 200]
+      "position": [
+        3400,
+        200
+      ]
     },
     {
       "parameters": {},
@@ -712,7 +782,10 @@
       "name": "Stop - Another Execution Handles",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
-      "position": [2000, 500]
+      "position": [
+        1800,
+        500
+      ]
     },
     {
       "parameters": {
@@ -725,7 +798,10 @@
       "name": "Send Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [-800, 1200]
+      "position": [
+        -800,
+        1200
+      ]
     },
     {
       "parameters": {
@@ -735,7 +811,10 @@
       "name": "Z-API Send Router",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-600, 1200]
+      "position": [
+        -600,
+        1200
+      ]
     },
     {
       "parameters": {
@@ -759,7 +838,10 @@
       "name": "Z-API Send Execute",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [-400, 1200]
+      "position": [
+        -400,
+        1200
+      ]
     },
     {
       "parameters": {
@@ -771,7 +853,23 @@
       "name": "Send Response",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [-200, 1200]
+      "position": [
+        -200,
+        1200
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all();"
+      },
+      "id": "collect-text",
+      "name": "Collect Text",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        300
+      ]
     }
   ],
   "connections": {
@@ -904,7 +1002,7 @@
       "main": [
         [
           {
-            "node": "Merge All Branches",
+            "node": "Collect Text",
             "type": "main",
             "index": 0
           }
@@ -915,7 +1013,7 @@
       "main": [
         [
           {
-            "node": "Merge All Branches",
+            "node": "Collect Text",
             "type": "main",
             "index": 0
           }
@@ -926,7 +1024,7 @@
       "main": [
         [
           {
-            "node": "Merge All Branches",
+            "node": "Collect Text",
             "type": "main",
             "index": 0
           }
@@ -937,7 +1035,7 @@
       "main": [
         [
           {
-            "node": "Merge All Branches",
+            "node": "Collect Text",
             "type": "main",
             "index": 0
           }
@@ -948,7 +1046,7 @@
       "main": [
         [
           {
-            "node": "Merge All Branches",
+            "node": "Collect Text",
             "type": "main",
             "index": 0
           }
@@ -959,18 +1057,7 @@
       "main": [
         [
           {
-            "node": "Merge All Branches",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Merge All Branches": {
-      "main": [
-        [
-          {
-            "node": "Redis Push Message",
+            "node": "Collect Text",
             "type": "main",
             "index": 0
           }
@@ -1150,6 +1237,17 @@
         [
           {
             "node": "Send Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collect Text": {
+      "main": [
+        [
+          {
+            "node": "Redis Push Message",
             "type": "main",
             "index": 0
           }
