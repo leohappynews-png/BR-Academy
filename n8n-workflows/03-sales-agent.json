@@ -29,7 +29,7 @@
     {
       "parameters": {
         "operation": "read",
-        "documentId": { "__rl": true, "mode": "id", "value": "={{$env.GOOGLE_SHEET_LEADS_ID}}" },
+        "documentId": { "__rl": true, "mode": "id", "value": "1B2kx3JELw36jYk4IYcJBUqXEFS6uRI7ssM8Ys0BUI1U" },
         "sheetName": { "__rl": true, "mode": "gid", "value": "0" },
         "options": {
           "filters": {
@@ -54,7 +54,7 @@
     {
       "parameters": {
         "operation": "read",
-        "documentId": { "__rl": true, "mode": "id", "value": "={{$env.GOOGLE_SHEET_LEADS_ID}}" },
+        "documentId": { "__rl": true, "mode": "id", "value": "1B2kx3JELw36jYk4IYcJBUqXEFS6uRI7ssM8Ys0BUI1U" },
         "sheetName": { "__rl": true, "mode": "gid", "value": "conversation_history" },
         "options": {
           "filters": {
@@ -128,7 +128,7 @@
     {
       "parameters": {
         "operation": "append",
-        "documentId": { "__rl": true, "mode": "id", "value": "={{$env.GOOGLE_SHEET_LEADS_ID}}" },
+        "documentId": { "__rl": true, "mode": "id", "value": "1B2kx3JELw36jYk4IYcJBUqXEFS6uRI7ssM8Ys0BUI1U" },
         "sheetName": { "__rl": true, "mode": "gid", "value": "conversation_history" },
         "columns": {
           "mappingMode": "defineBelow",
@@ -153,7 +153,7 @@
     {
       "parameters": {
         "operation": "appendOrUpdate",
-        "documentId": { "__rl": true, "mode": "id", "value": "={{$env.GOOGLE_SHEET_LEADS_ID}}" },
+        "documentId": { "__rl": true, "mode": "id", "value": "1B2kx3JELw36jYk4IYcJBUqXEFS6uRI7ssM8Ys0BUI1U" },
         "sheetName": { "__rl": true, "mode": "gid", "value": "0" },
         "columns": {
           "mappingMode": "defineBelow",
@@ -207,7 +207,7 @@
     {
       "parameters": {
         "operation": "read",
-        "documentId": { "__rl": true, "mode": "id", "value": "={{$env.GOOGLE_SHEET_LEADS_ID}}" },
+        "documentId": { "__rl": true, "mode": "id", "value": "1B2kx3JELw36jYk4IYcJBUqXEFS6uRI7ssM8Ys0BUI1U" },
         "sheetName": { "__rl": true, "mode": "gid", "value": "0" },
         "options": {}
       },

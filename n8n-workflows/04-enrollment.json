@@ -41,7 +41,7 @@
     {
       "parameters": {
         "operation": "append",
-        "documentId": { "__rl": true, "mode": "id", "value": "={{$env.GOOGLE_SHEET_ENROLLMENT_ID}}" },
+        "documentId": { "__rl": true, "mode": "id", "value": "1Nx6rUl00Jg7MGJ8xQeyNL7FldZMNVH-VT8a2psFAxJs" },
         "sheetName": { "__rl": true, "mode": "gid", "value": "0" },
         "columns": {
           "mappingMode": "autoMapInputData",
@@ -61,7 +61,7 @@
     {
       "parameters": {
         "operation": "appendOrUpdate",
-        "documentId": { "__rl": true, "mode": "id", "value": "={{$env.GOOGLE_SHEET_LEADS_ID}}" },
+        "documentId": { "__rl": true, "mode": "id", "value": "1B2kx3JELw36jYk4IYcJBUqXEFS6uRI7ssM8Ys0BUI1U" },
         "sheetName": { "__rl": true, "mode": "gid", "value": "0" },
         "columns": {
           "mappingMode": "defineBelow",
@@ -86,7 +86,7 @@
     {
       "parameters": {
         "operation": "append",
-        "documentId": { "__rl": true, "mode": "id", "value": "={{$env.GOOGLE_SHEET_FINANCIAL_ID}}" },
+        "documentId": { "__rl": true, "mode": "id", "value": "12yZjN6KftkAYpTVrd-SCiXQQ1EqUOTqRJWtO9TrBX4Q" },
         "sheetName": { "__rl": true, "mode": "gid", "value": "0" },
         "columns": {
           "mappingMode": "defineBelow",

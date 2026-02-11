@@ -16,7 +16,7 @@
     {
       "parameters": {
         "operation": "read",
-        "documentId": { "__rl": true, "mode": "id", "value": "={{$env.GOOGLE_SHEET_ENROLLMENT_ID}}" },
+        "documentId": { "__rl": true, "mode": "id", "value": "1Nx6rUl00Jg7MGJ8xQeyNL7FldZMNVH-VT8a2psFAxJs" },
         "sheetName": { "__rl": true, "mode": "gid", "value": "0" },
         "options": {}
       },
@@ -231,7 +231,7 @@
     {
       "parameters": {
         "operation": "appendOrUpdate",
-        "documentId": { "__rl": true, "mode": "id", "value": "={{$env.GOOGLE_SHEET_LEADS_ID}}" },
+        "documentId": { "__rl": true, "mode": "id", "value": "1B2kx3JELw36jYk4IYcJBUqXEFS6uRI7ssM8Ys0BUI1U" },
         "sheetName": { "__rl": true, "mode": "gid", "value": "0" },
         "columns": {
           "mappingMode": "defineBelow",
