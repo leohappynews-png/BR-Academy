@@ -1,0 +1,38 @@
+{
+  "name": "BR Academy - Enrollment Tool",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "trigger-enrollment-tool",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.N8N_WEBHOOK_BASE_URL}}/webhook/br-academy-enroll",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"lead_id\": \"{{ $json.lead_id }}\",\n  \"name\": \"{{ $json.student_name }}\",\n  \"email\": \"{{ $json.student_email }}\",\n  \"phone\": \"{{ $json.phone }}\",\n  \"amount\": {{ $json.amount_paid }},\n  \"currency\": \"EUR\",\n  \"payment_method\": \"{{ $json.payment_method }}\",\n  \"payment_id\": \"{{ $json.payment_id }}\",\n  \"payment_status\": \"paid\",\n  \"course_date\": \"{{ $json.course_date }}\",\n  \"course_type\": \"{{ $json.course_type }}\"\n}",
+        "options": {}
+      },
+      "id": "http-create-enrollment",
+      "name": "Create Enrollment",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [500, 300]
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [[{ "node": "Create Enrollment", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

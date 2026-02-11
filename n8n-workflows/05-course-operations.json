@@ -87,12 +87,11 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://graph.facebook.com/v18.0/{{$env.WHATSAPP_PHONE_ID}}/messages",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "httpHeaderAuth",
+        "url": "={{$env.N8N_WEBHOOK_BASE_URL}}/webhook/br-academy-zapi-send",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $json.phone }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"Oi {{ $json.name }}! Falta 1 semana para o seu curso na BR Academy!\\n\\nData: {{ $json.course_date }}\\nTipo: {{ $json.course_type === 'weekend' ? 'Fim de Semana (Sab-Dom 10h-17h)' : 'Noturno (Seg-Qui 18h-21h)' }}\\n\\nNao esqueca de separar:\\n- Documento de identidade\\n- Caderno e caneta\\n- Sapato fechado\\n\\nEstamos preparando tudo para voce! Alguma duvida?\"\n  }\n}"
+        "jsonBody": "={\n  \"phone\": \"{{ $json.phone }}\",\n  \"message\": \"Oi {{ $json.name }}! Falta 1 semana para o seu curso na BR Academy!\\n\\nData: {{ $json.course_date }}\\nTipo: {{ $json.course_type === 'weekend' ? 'Fim de Semana (Sab-Dom 10h-17h)' : 'Noturno (Seg-Qui 18h-21h)' }}\\n\\nNao esqueca de separar:\\n- Documento de identidade\\n- Caderno e caneta\\n- Sapato fechado\\n\\nEstamos preparando tudo para voce! Alguma duvida?\",\n  \"type\": \"text\",\n  \"delayTyping\": 8\n}",
+        "options": {}
       },
       "id": "whatsapp-pre-7days",
       "name": "WhatsApp - 7 Days Before",
@@ -103,12 +102,11 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://graph.facebook.com/v18.0/{{$env.WHATSAPP_PHONE_ID}}/messages",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "httpHeaderAuth",
+        "url": "={{$env.N8N_WEBHOOK_BASE_URL}}/webhook/br-academy-zapi-send",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $json.phone }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"Oi {{ $json.name }}! Faltam apenas 2 dias para o curso!\\n\\nAqui vao as instrucoes importantes:\\n\\nEndereco: [ENDERECO DO CURSO]\\nHorario: {{ $json.course_type === 'weekend' ? '10h - chegue 15min antes' : '18h - chegue 15min antes' }}\\n\\nO que trazer:\\n1. Passaporte ou IRP Card\\n2. Caderno e caneta\\n3. Sapato fechado (obrigatorio)\\n4. Roupa confortavel\\n\\nDica: venha alimentado e hidratado!\\n\\nNos vemos em breve!\"\n  }\n}"
+        "jsonBody": "={\n  \"phone\": \"{{ $json.phone }}\",\n  \"message\": \"Oi {{ $json.name }}! Faltam apenas 2 dias para o curso!\\n\\nAqui vao as instrucoes importantes:\\n\\nEndereco: [ENDERECO DO CURSO]\\nHorario: {{ $json.course_type === 'weekend' ? '10h - chegue 15min antes' : '18h - chegue 15min antes' }}\\n\\nO que trazer:\\n1. Passaporte ou IRP Card\\n2. Caderno e caneta\\n3. Sapato fechado (obrigatorio)\\n4. Roupa confortavel\\n\\nDica: venha alimentado e hidratado!\\n\\nNos vemos em breve!\",\n  \"type\": \"text\",\n  \"delayTyping\": 8\n}",
+        "options": {}
       },
       "id": "whatsapp-pre-2days",
       "name": "WhatsApp - 2 Days Before",
@@ -119,12 +117,11 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://graph.facebook.com/v18.0/{{$env.WHATSAPP_PHONE_ID}}/messages",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "httpHeaderAuth",
+        "url": "={{$env.N8N_WEBHOOK_BASE_URL}}/webhook/br-academy-zapi-send",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $json.phone }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"{{ $json.name }}, amanha e o grande dia!\\n\\nSeu curso de Bar Staff na BR Academy comeca amanha!\\n\\nEndereco: [ENDERECO]\\nHorario: {{ $json.course_type === 'weekend' ? '10h00' : '18h00' }}\\n\\nLembre-se: chegue 15 minutos antes para o check-in.\\n\\nVoce esta prestes a dar um grande passo na sua carreira na Irlanda! Boa sorte!\"\n  }\n}"
+        "jsonBody": "={\n  \"phone\": \"{{ $json.phone }}\",\n  \"message\": \"{{ $json.name }}, amanha e o grande dia!\\n\\nSeu curso de Bar Staff na BR Academy comeca amanha!\\n\\nEndereco: [ENDERECO]\\nHorario: {{ $json.course_type === 'weekend' ? '10h00' : '18h00' }}\\n\\nLembre-se: chegue 15 minutos antes para o check-in.\\n\\nVoce esta prestes a dar um grande passo na sua carreira na Irlanda! Boa sorte!\",\n  \"type\": \"text\",\n  \"delayTyping\": 8\n}",
+        "options": {}
       },
       "id": "whatsapp-pre-1day",
       "name": "WhatsApp - Day Before",
@@ -135,12 +132,11 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://graph.facebook.com/v18.0/{{$env.WHATSAPP_PHONE_ID}}/messages",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "httpHeaderAuth",
+        "url": "={{$env.N8N_WEBHOOK_BASE_URL}}/webhook/br-academy-zapi-send",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $json.phone }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"Bom dia {{ $json.name }}!\\n\\nHoje e dia de curso! Estamos te esperando!\\n\\nEndereco: [ENDERECO]\\nHorario: {{ $json.course_type === 'weekend' ? '10h00' : '18h00' }}\\n\\nSe tiver qualquer problema para chegar, nos avise neste numero.\\n\\nVamos la!\"\n  }\n}"
+        "jsonBody": "={\n  \"phone\": \"{{ $json.phone }}\",\n  \"message\": \"Bom dia {{ $json.name }}!\\n\\nHoje e dia de curso! Estamos te esperando!\\n\\nEndereco: [ENDERECO]\\nHorario: {{ $json.course_type === 'weekend' ? '10h00' : '18h00' }}\\n\\nSe tiver qualquer problema para chegar, nos avise neste numero.\\n\\nVamos la!\",\n  \"type\": \"text\",\n  \"delayTyping\": 8\n}",
+        "options": {}
       },
       "id": "whatsapp-course-day",
       "name": "WhatsApp - Course Day",
@@ -151,12 +147,11 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://graph.facebook.com/v18.0/{{$env.WHATSAPP_PHONE_ID}}/messages",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "httpHeaderAuth",
+        "url": "={{$env.N8N_WEBHOOK_BASE_URL}}/webhook/br-academy-zapi-send",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $json.phone }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"Oi {{ $json.name }}! Esperamos que voce tenha aproveitado o curso!\\n\\nGostaramos de saber como foi sua experiencia. Pode nos dar um feedback rapido?\\n\\n1. O que voce mais gostou?\\n2. O que podemos melhorar?\\n3. De 1 a 10, qual nota voce daria?\\n\\nSeu certificado sera enviado por email em breve!\\n\\nDica: atualize seu CV com o certificado e comece a aplicar para vagas! Vamos compartilhar oportunidades no nosso grupo.\"\n  }\n}"
+        "jsonBody": "={\n  \"phone\": \"{{ $json.phone }}\",\n  \"message\": \"Oi {{ $json.name }}! Esperamos que voce tenha aproveitado o curso!\\n\\nGostaramos de saber como foi sua experiencia. Pode nos dar um feedback rapido?\\n\\n1. O que voce mais gostou?\\n2. O que podemos melhorar?\\n3. De 1 a 10, qual nota voce daria?\\n\\nSeu certificado sera enviado por email em breve!\\n\\nDica: atualize seu CV com o certificado e comece a aplicar para vagas! Vamos compartilhar oportunidades no nosso grupo.\",\n  \"type\": \"text\",\n  \"delayTyping\": 8\n}",
+        "options": {}
       },
       "id": "whatsapp-post-1day",
       "name": "WhatsApp - Day After",
@@ -167,12 +162,11 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://graph.facebook.com/v18.0/{{$env.WHATSAPP_PHONE_ID}}/messages",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "httpHeaderAuth",
+        "url": "={{$env.N8N_WEBHOOK_BASE_URL}}/webhook/br-academy-zapi-send",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $json.phone }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"Oi {{ $json.name }}! Ja faz 1 semana desde o seu curso na BR Academy!\\n\\nComo esta indo a busca por emprego? Ja comecou a aplicar?\\n\\nAlgumas dicas:\\n- Atualize seu LinkedIn com o certificado\\n- Visite pubs e bares pessoalmente com seu CV\\n- Os melhores horarios para entregar CV: Ter-Qui, 14h-16h\\n\\nTemos algumas vagas no nosso grupo de ex-alunos. Quer que te adicionemos?\\n\\nE se conhecer alguem que precisa do curso, indique! Voces dois ganham 10% de desconto na proxima formacao!\"\n  }\n}"
+        "jsonBody": "={\n  \"phone\": \"{{ $json.phone }}\",\n  \"message\": \"Oi {{ $json.name }}! Ja faz 1 semana desde o seu curso na BR Academy!\\n\\nComo esta indo a busca por emprego? Ja comecou a aplicar?\\n\\nAlgumas dicas:\\n- Atualize seu LinkedIn com o certificado\\n- Visite pubs e bares pessoalmente com seu CV\\n- Os melhores horarios para entregar CV: Ter-Qui, 14h-16h\\n\\nTemos algumas vagas no nosso grupo de ex-alunos. Quer que te adicionemos?\\n\\nE se conhecer alguem que precisa do curso, indique! Voces dois ganham 10% de desconto na proxima formacao!\",\n  \"type\": \"text\",\n  \"delayTyping\": 8\n}",
+        "options": {}
       },
       "id": "whatsapp-post-7days",
       "name": "WhatsApp - 7 Days After",
@@ -183,12 +177,11 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://graph.facebook.com/v18.0/{{$env.WHATSAPP_PHONE_ID}}/messages",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "httpHeaderAuth",
+        "url": "={{$env.N8N_WEBHOOK_BASE_URL}}/webhook/br-academy-zapi-send",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $json.phone }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"{{ $json.name }}, ja faz 1 mes desde o seu curso! Como voce esta?\\n\\nQueremos saber: conseguiu emprego na area? Conta pra gente!\\n\\nSe ainda esta buscando, temos novidades:\\n- Novas parcerias com pubs em Dublin\\n- Workshop avancado de cocktails (desconto exclusivo para alumni)\\n- Grupo de networking no WhatsApp\\n\\nVoce faz parte da familia BR Academy! Qualquer coisa, estamos aqui.\"\n  }\n}"
+        "jsonBody": "={\n  \"phone\": \"{{ $json.phone }}\",\n  \"message\": \"{{ $json.name }}, ja faz 1 mes desde o seu curso! Como voce esta?\\n\\nQueremos saber: conseguiu emprego na area? Conta pra gente!\\n\\nSe ainda esta buscando, temos novidades:\\n- Novas parcerias com pubs em Dublin\\n- Workshop avancado de cocktails (desconto exclusivo para alumni)\\n- Grupo de networking no WhatsApp\\n\\nVoce faz parte da familia BR Academy! Qualquer coisa, estamos aqui.\",\n  \"type\": \"text\",\n  \"delayTyping\": 8\n}",
+        "options": {}
       },
       "id": "whatsapp-post-30days",
       "name": "WhatsApp - 30 Days After (Alumni)",
@@ -272,20 +265,36 @@
     },
     "Route by Trigger": {
       "main": [
-        [{ "node": "WhatsApp - 7 Days Before", "type": "main", "index": 0 }],
+        [
+          { "node": "WhatsApp - 7 Days Before", "type": "main", "index": 0 },
+          { "node": "Update Lead Stage", "type": "main", "index": 0 }
+        ],
         [
           { "node": "WhatsApp - 2 Days Before", "type": "main", "index": 0 },
-          { "node": "Gmail - Course Instructions", "type": "main", "index": 0 }
+          { "node": "Gmail - Course Instructions", "type": "main", "index": 0 },
+          { "node": "Update Lead Stage", "type": "main", "index": 0 }
         ],
-        [{ "node": "WhatsApp - Day Before", "type": "main", "index": 0 }],
-        [{ "node": "WhatsApp - Course Day", "type": "main", "index": 0 }],
+        [
+          { "node": "WhatsApp - Day Before", "type": "main", "index": 0 },
+          { "node": "Update Lead Stage", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "WhatsApp - Course Day", "type": "main", "index": 0 },
+          { "node": "Update Lead Stage", "type": "main", "index": 0 }
+        ],
         [
           { "node": "WhatsApp - Day After", "type": "main", "index": 0 },
           { "node": "Gmail - Certificate & Next Steps", "type": "main", "index": 0 },
           { "node": "Update Lead Stage", "type": "main", "index": 0 }
         ],
-        [{ "node": "WhatsApp - 7 Days After", "type": "main", "index": 0 }],
-        [{ "node": "WhatsApp - 30 Days After (Alumni)", "type": "main", "index": 0 }]
+        [
+          { "node": "WhatsApp - 7 Days After", "type": "main", "index": 0 },
+          { "node": "Update Lead Stage", "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "WhatsApp - 30 Days After (Alumni)", "type": "main", "index": 0 },
+          { "node": "Update Lead Stage", "type": "main", "index": 0 }
+        ]
       ]
     }
   },

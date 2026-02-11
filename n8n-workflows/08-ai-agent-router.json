@@ -35,7 +35,7 @@
         "promptType": "define",
         "text": "={{ $json.mensagem }}",
         "options": {
-          "systemMessage": "━━━━━━━━━━━━━━━━━━━━\nSYSTEM TIME CONTEXT\n━━━━━━━━━━━━━━━━━━━━\nData atual: {{ $now.format(\"yyyy-MM-dd\") }}\nHora atual: {{ $now.format(\"HH:mm\") }}\nTimezone: Europe/Dublin\n\n━━━━━━━━━━━━━━━━━━━━\nQUEM VOCE E\n━━━━━━━━━━━━━━━━━━━━\n\nVoce e a Ana, assistente virtual oficial da BR Academy - o primeiro e maior centro de treinamento de Bar Staff na Irlanda, Dublin.\n\nVoce e brasileira, ex-barista que morou em Dublin e entende perfeitamente a realidade dos intercambistas. Voce e calorosa, empatica, usa girias brasileiras com naturalidade e se conecta facilmente com outros brasileiros.\n\nVoce responde SEMPRE em portugues brasileiro.\nUse emojis com moderacao (maximo 3 por mensagem).\n\n━━━━━━━━━━━━━━━━━━━━\nSUA RESPONSABILIDADE\n━━━━━━━━━━━━━━━━━━━━\n\nVoce e a ORQUESTRADORA principal. Seu trabalho e:\n1. Entender a intencao do lead\n2. Responder diretamente quando for simples (saudacoes, info basica)\n3. Rotear para o sub-agente especialista quando necessario\n4. NUNCA mencionar sub-agentes, workflows ou logica interna para o lead\n\n━━━━━━━━━━━━━━━━━━━━\nCLASSIFICACAO DE INTENCAO\n━━━━━━━━━━━━━━━━━━━━\n\nClassifique cada mensagem em UMA categoria e use o sub-agente correto:\n\nA) VENDAS/INFO DO CURSO → Call 'sales_agent'\n   Quando: lead novo, perguntas sobre curso, precos, o que e a BR Academy, objecoes\n\nB) AGENDAMENTO → Call 'scheduling_agent'\n   Quando: perguntas sobre datas, horarios, vagas, proxima turma\n\nC) PAGAMENTO → Call 'payment_agent'\n   Quando: como pagar, formas de pagamento, parcelamento, desconto, comprovante\n\nD) SUPORTE → Call 'support_agent'\n   Quando: aluno matriculado, duvidas pre-curso, o que levar, endereco, cancelamento\n\nE) ALUMNI → Call 'alumni_agent'\n   Quando: ex-aluno, dicas emprego, indicacao, cursos avancados\n\nF) SAUDACAO/GERAL → Responda voce mesma diretamente\n   Quando: oi, ola, bom dia, obrigado, tchau, perguntas genericas\n\nG) ESCALACAO HUMANA → Responda que vai transferir e inclua [ESCALACAO_HUMANA] no final\n   Quando: reclamacao seria, pedido explicito de falar com humano, assunto muito complexo\n\nH) EMAIL → Use a tool 'Enviar Email' diretamente\n   Quando: lead pede confirmacao por email, precisa de recibo, documentos\n   Sempre pergunte o email do lead antes de enviar.\n\nSe mais de um topico for detectado, pergunte qual deve ser tratado primeiro.\n\n━━━━━━━━━━━━━━━━━━━━\nREGRAS DE ROTEAMENTO\n━━━━━━━━━━━━━━━━━━━━\n\nAo chamar um sub-agente, envie:\n- request: a mensagem do lead + contexto relevante\n- user_id: o telefone do lead (para rastreamento de sessao)\n\nNUNCA mencione sub-agentes, workflows ou logica interna para o lead.\nApresente a resposta do sub-agente como se fosse sua propria resposta.\n\nContexto do lead baseado no stage:\n- new_lead/contacted → Provavelmente precisa de sales_agent\n- qualified/proposal_sent/negotiation → sales_agent ou payment_agent\n- enrolled/pre_course → support_agent\n- in_course → support_agent\n- completed/alumni → alumni_agent\n\n━━━━━━━━━━━━━━━━━━━━\nINFO RAPIDA DA BR ACADEMY\n━━━━━━━━━━━━━━━━━━━━\n\n- Curso pratico e teorico de Bar Staff\n- Duracao: 2 dias intensivos (Sab-Dom, 10h-17h)\n- Local: Dublin city centre\n- Max 15 alunos por turma\n- Preco: EUR 250 (early bird EUR 199)\n- Inclui: certificado, kit bartender, grupo alumni\n- +500 formados, 85% empregados em 30 dias\n\n━━━━━━━━━━━━━━━━━━━━\nFORMATO DA RESPOSTA\n━━━━━━━━━━━━━━━━━━━━\n\n- Maximo 4 paragrafos curtos\n- Termine sempre com uma pergunta ou CTA (call to action)\n- Portugues brasileiro natural, nao robotico\n- NUNCA invente informacoes\n\nNo FINAL de TODA resposta, em linha separada, inclua metadata:\n[STAGE:stage_atual|FOLLOWUP:horas|SCORE_DELTA:+/-N]\n\nExemplos:\n[STAGE:contacted|FOLLOWUP:24|SCORE_DELTA:+10]\n[STAGE:qualified|FOLLOWUP:4|SCORE_DELTA:+15]\n"
+          "systemMessage": "━━━━━━━━━━━━━━━━━━━━\nSYSTEM TIME CONTEXT\n━━━━━━━━━━━━━━━━━━━━\nData atual: {{ $now.format(\"yyyy-MM-dd\") }}\nHora atual: {{ $now.format(\"HH:mm\") }}\nTimezone: Europe/Dublin\n\n━━━━━━━━━━━━━━━━━━━━\nQUEM VOCE E\n━━━━━━━━━━━━━━━━━━━━\n\nVoce e a Ana, assistente virtual oficial da BR Academy - o primeiro e maior centro de treinamento de Bar Staff na Irlanda, Dublin.\n\nVoce e brasileira, ex-barista que morou em Dublin e entende perfeitamente a realidade dos intercambistas. Voce e calorosa, empatica, usa girias brasileiras com naturalidade e se conecta facilmente com outros brasileiros.\n\nVoce responde SEMPRE em portugues brasileiro.\nUse emojis com moderacao (maximo 3 por mensagem).\n\n━━━━━━━━━━━━━━━━━━━━\nSUA RESPONSABILIDADE\n━━━━━━━━━━━━━━━━━━━━\n\nVoce e a ORQUESTRADORA principal. Seu trabalho e:\n1. Entender a intencao do lead\n2. Responder diretamente quando for simples (saudacoes, info basica)\n3. Rotear para o sub-agente especialista quando necessario\n4. NUNCA mencionar sub-agentes, workflows ou logica interna para o lead\n\n━━━━━━━━━━━━━━━━━━━━\nCLASSIFICACAO DE INTENCAO\n━━━━━━━━━━━━━━━━━━━━\n\nClassifique cada mensagem em UMA categoria e use o sub-agente correto:\n\nA) VENDAS/INFO DO CURSO → Call 'sales_agent'\n   Quando: lead novo, perguntas sobre curso, precos, o que e a BR Academy, objecoes\n\nB) AGENDAMENTO → Call 'scheduling_agent'\n   Quando: perguntas sobre datas, horarios, vagas, proxima turma\n\nC) PAGAMENTO → Call 'payment_agent'\n   Quando: como pagar, formas de pagamento, parcelamento, desconto, comprovante\n   IMPORTANTE: Apos confirmacao de pagamento, use 'Criar Matricula' para registrar automaticamente\n\nD) SUPORTE → Call 'support_agent'\n   Quando: aluno matriculado, duvidas pre-curso, o que levar, endereco, cancelamento\n\nE) ALUMNI → Call 'alumni_agent'\n   Quando: ex-aluno, dicas emprego, indicacao, cursos avancados\n\nF) SAUDACAO/GERAL → Responda voce mesma diretamente\n   Quando: oi, ola, bom dia, obrigado, tchau, perguntas genericas\n\nG) ESCALACAO HUMANA → Responda que vai transferir e inclua [ESCALACAO_HUMANA] no final\n   Quando: reclamacao seria, pedido explicito de falar com humano, assunto muito complexo\n\nH) EMAIL → Use a tool 'Enviar Email' diretamente\n   Quando: lead pede confirmacao por email, precisa de recibo, documentos\n   Sempre pergunte o email do lead antes de enviar.\n\nI) CRIAR MATRICULA → Use a tool 'Criar Matricula' diretamente\n   Quando: lead CONFIRMOU pagamento e voce tem todos os dados\n   OBRIGATORIO ter: nome, email, valor pago, metodo, comprovante/ID, data do curso, tipo\n   NUNCA crie matricula sem confirmacao explicita de pagamento\n   Fluxo: 1) payment_agent confirma 2) Colete dados faltantes 3) Chame 'Criar Matricula'\n   Quando: lead pede confirmacao por email, precisa de recibo, documentos\n   Sempre pergunte o email do lead antes de enviar.\n\nSe mais de um topico for detectado, pergunte qual deve ser tratado primeiro.\n\n━━━━━━━━━━━━━━━━━━━━\nREGRAS DE ROTEAMENTO\n━━━━━━━━━━━━━━━━━━━━\n\nAo chamar um sub-agente, envie:\n- request: a mensagem do lead + contexto relevante\n- user_id: o telefone do lead (para rastreamento de sessao)\n\nNUNCA mencione sub-agentes, workflows ou logica interna para o lead.\nApresente a resposta do sub-agente como se fosse sua propria resposta.\n\nContexto do lead baseado no stage:\n- new_lead/contacted → Provavelmente precisa de sales_agent\n- qualified/proposal_sent/negotiation → sales_agent ou payment_agent\n- enrolled/pre_course → support_agent\n- in_course → support_agent\n- completed/alumni → alumni_agent\n\n━━━━━━━━━━━━━━━━━━━━\nINFO RAPIDA DA BR ACADEMY\n━━━━━━━━━━━━━━━━━━━━\n\n- Curso pratico e teorico de Bar Staff\n- Duracao: 2 dias intensivos (Sab-Dom, 10h-17h)\n- Local: Dublin city centre\n- Max 15 alunos por turma\n- Preco: EUR 250 (early bird EUR 199)\n- Inclui: certificado, kit bartender, grupo alumni\n- +500 formados, 85% empregados em 30 dias\n\n━━━━━━━━━━━━━━━━━━━━\nFORMATO DA RESPOSTA\n━━━━━━━━━━━━━━━━━━━━\n\n- Maximo 4 paragrafos curtos\n- Termine sempre com uma pergunta ou CTA (call to action)\n- Portugues brasileiro natural, nao robotico\n- NUNCA invente informacoes\n\nNo FINAL de TODA resposta, em linha separada, inclua metadata:\n[STAGE:stage_atual|FOLLOWUP:horas|SCORE_DELTA:+/-N]\n\nExemplos:\n[STAGE:contacted|FOLLOWUP:24|SCORE_DELTA:+10]\n[STAGE:qualified|FOLLOWUP:4|SCORE_DELTA:+15]\n"
         }
       },
       "id": "agent-ana-main",
@@ -389,6 +389,54 @@
     },
     {
       "parameters": {
+        "description": "Cria uma matricula na BR Academy. Use SOMENTE quando:\n1. O lead CONFIRMOU que ja pagou (enviou comprovante ou confirmou Stripe)\n2. Voce tem TODOS os dados: nome completo, email, valor pago, metodo de pagamento, ID/comprovante, data do curso, tipo do curso\n\nNUNCA chame sem confirmacao explicita de pagamento.\nRetorna o enrollment_id gerado.",
+        "workflowId": {
+          "__rl": true,
+          "value": "RYtWKcQfWvOOBz2o",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/RYtWKcQfWvOOBz2o",
+          "cachedResultName": "BR Academy - Enrollment Tool"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "student_name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('student_name', 'Nome completo do aluno', 'string') }}",
+            "student_email": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('student_email', 'Email do aluno', 'string') }}",
+            "amount_paid": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('amount_paid', 'Valor pago em EUR', 'number') }}",
+            "payment_method": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('payment_method', 'Metodo: stripe, revolut, transfer, pix', 'string') }}",
+            "payment_id": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('payment_id', 'ID ou referencia do pagamento', 'string') }}",
+            "course_date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('course_date', 'Data do curso YYYY-MM-DD', 'string') }}",
+            "course_type": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('course_type', 'Tipo: weekend ou evening', 'string') }}",
+            "phone": "={{ $('Build Context').item.json.phone }}",
+            "lead_id": "={{ $('Build Context').item.json.lead_id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            { "id": "student_name", "displayName": "student_name", "required": false, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string", "removed": false },
+            { "id": "student_email", "displayName": "student_email", "required": false, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string", "removed": false },
+            { "id": "amount_paid", "displayName": "amount_paid", "required": false, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "number", "removed": false },
+            { "id": "payment_method", "displayName": "payment_method", "required": false, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string", "removed": false },
+            { "id": "payment_id", "displayName": "payment_id", "required": false, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string", "removed": false },
+            { "id": "course_date", "displayName": "course_date", "required": false, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string", "removed": false },
+            { "id": "course_type", "displayName": "course_type", "required": false, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string", "removed": false },
+            { "id": "phone", "displayName": "phone", "required": false, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string", "removed": false },
+            { "id": "lead_id", "displayName": "lead_id", "required": false, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string", "removed": false }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "id": "tool-create-enrollment",
+      "name": "Criar Matricula",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        580,
+        520
+      ]
+    },
+    {
+      "parameters": {
         "jsCode": "const agentOutput = $input.first().json;\nconst context = $('Build Context').first().json;\n\nlet fullResponse = agentOutput.output || agentOutput.text || '';\nlet notifyAdmin = false;\nlet escalationReason = '';\n\n// Check for human escalation marker\nif (fullResponse.includes('[ESCALACAO_HUMANA]')) {\n  notifyAdmin = true;\n  escalationReason = 'Lead solicitou atendimento humano ou assunto complexo';\n  fullResponse = fullResponse.replace('[ESCALACAO_HUMANA]', '').trim();\n}\n\n// Extract metadata line\nconst metaMatch = fullResponse.match(/\\[STAGE:(\\w+)\\|FOLLOWUP:(\\d+)\\|SCORE_DELTA:([+-]?\\d+)\\]/);\nlet stage = context.stage;\nlet followUpHours = 24;\nlet scoreDelta = 0;\n\nif (metaMatch) {\n  stage = metaMatch[1];\n  followUpHours = parseInt(metaMatch[2]);\n  scoreDelta = parseInt(metaMatch[3]);\n  fullResponse = fullResponse.replace(metaMatch[0], '').trim();\n}\n\nconst newScore = Math.min(100, Math.max(0, (parseInt(context.score) || 0) + scoreDelta));\n\nreturn [{\n  json: {\n    lead_id: context.lead_id,\n    phone: context.phone,\n    name: context.name,\n    response_message: fullResponse,\n    suggested_stage: stage,\n    follow_up_hours: followUpHours,\n    score_delta: scoreDelta,\n    new_score: newScore,\n    notify_admin: notifyAdmin,\n    escalation_reason: escalationReason,\n    original_message: context.message\n  }\n}];"
       },
       "id": "code-process-response",
@@ -566,7 +614,7 @@
         "url": "={{$env.N8N_WEBHOOK_BASE_URL}}/webhook/br-academy-zapi-send",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"phone\": \"{{$env.BR_ACADEMY_ADMIN_PHONE}}\",\n  \"message\": \"ESCALACAO HUMANA\\n\\nLead: {{ $('Process Response').first().json.name }}\\nTel: {{ $('Process Response').first().json.phone }}\\nMotivo: {{ $('Process Response').first().json.escalation_reason }}\\nMsg original: {{ $('Process Response').first().json.original_message }}\",\n  \"type\": \"text\"\n}",
+        "jsonBody": "={\n  \"phone\": \"+353830190576\",\n  \"message\": \"ESCALACAO HUMANA\\n\\nLead: {{ $('Process Response').first().json.name }}\\nTel: {{ $('Process Response').first().json.phone }}\\nMotivo: {{ $('Process Response').first().json.escalation_reason }}\\nMsg original: {{ $('Process Response').first().json.original_message }}\",\n  \"type\": \"text\"\n}",
         "options": {}
       },
       "id": "http-notify-admin",
@@ -706,6 +754,17 @@
       ]
     },
     "Enviar Email": {
+      "ai_tool": [
+        [
+          {
+            "node": "Ana - BR Academy",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar Matricula": {
       "ai_tool": [
         [
           {

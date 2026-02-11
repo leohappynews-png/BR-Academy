@@ -134,12 +134,11 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://graph.facebook.com/v18.0/{{$env.WHATSAPP_PHONE_ID}}/messages",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "httpHeaderAuth",
+        "url": "={{$env.N8N_WEBHOOK_BASE_URL}}/webhook/br-academy-zapi-send",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $json.phone }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"Oi {{ $json.name }}! Sua matricula na BR Academy foi CONFIRMADA! \\n\\nID: {{ $json.enrollment_id }}\\nCurso: {{ $json.course_type === 'weekend' ? 'Fim de Semana' : 'Noturno' }}\\nData: {{ $json.course_date }}\\n\\nVoce vai receber os documentos e instrucoes por email.\\n\\nBem-vindo(a) a familia BR Academy! Estamos ansiosos para te receber!\"\n  }\n}"
+        "jsonBody": "={\n  \"phone\": \"{{ $json.phone }}\",\n  \"message\": \"Oi {{ $json.name }}! Sua matricula na BR Academy foi CONFIRMADA! \\n\\nID: {{ $json.enrollment_id }}\\nCurso: {{ $json.course_type === 'weekend' ? 'Fim de Semana' : 'Noturno' }}\\nData: {{ $json.course_date }}\\n\\nVoce vai receber os documentos e instrucoes por email.\\n\\nBem-vindo(a) a familia BR Academy! Estamos ansiosos para te receber!\",\n  \"type\": \"text\",\n  \"delayTyping\": 8\n}",
+        "options": {}
       },
       "id": "whatsapp-enrollment-confirm",
       "name": "WhatsApp - Enrollment Confirm",
@@ -150,7 +149,7 @@
     {
       "parameters": {
         "operation": "create",
-        "calendar": { "__rl": true, "mode": "id", "value": "={{$env.GOOGLE_CALENDAR_ID}}" },
+        "calendar": { "__rl": true, "mode": "id", "value": "CONFIGURE_ME_CALENDAR" },
         "summary": "=BR Academy - {{ $json.name }} - Curso {{ $json.course_type }}",
         "description": "=Aluno: {{ $json.name }}\nEmail: {{ $json.email }}\nTelefone: {{ $json.phone }}\nEnrollment ID: {{ $json.enrollment_id }}\nTipo: {{ $json.course_type }}",
         "start": "={{ $json.course_date }}",
@@ -182,7 +181,7 @@
     },
     {
       "parameters": {
-        "sendTo": "={{$env.BR_ACADEMY_ADMIN_EMAIL}}",
+        "sendTo": "leohappynews@gmail.com",
         "subject": "=Nova Matricula! {{ $json.name }} - {{ $json.enrollment_id }}",
         "message": "=<h2>Nova Matricula Confirmada!</h2><p><strong>{{ $json.name }}</strong> acaba de se matricular!</p><table><tr><td>Enrollment ID:</td><td>{{ $json.enrollment_id }}</td></tr><tr><td>Curso:</td><td>{{ $json.course_type }}</td></tr><tr><td>Data:</td><td>{{ $json.course_date }}</td></tr><tr><td>Valor:</td><td>{{ $json.currency }} {{ $json.amount_paid }}</td></tr><tr><td>Pagamento:</td><td>{{ $json.payment_method }} ({{ $json.payment_status }})</td></tr></table>",
         "options": {}
