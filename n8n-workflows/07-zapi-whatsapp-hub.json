@@ -305,6 +305,8 @@
         2000,
         300
       ],
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput",
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "ImmGD20IqQ0YAOHZ",
