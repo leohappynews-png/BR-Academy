@@ -316,7 +316,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const items = $input.all();\nconst context = $('Dedup & Merge').first().json;\n\nif (items.length === 0 || !items[0].json.lead_id) {\n  // No lead found — pass empty lead_id so Is New Lead? routes to true\n  return [{ json: { lead_id: '', phone: context.normalized_phone } }];\n}\n\n// Lead found — pass through\nreturn items;"
+        "jsCode": "const items = $input.all();\nconst context = $('Dedup & Merge').first().json;\n\n// Check for error objects from onError: continueRegularOutput\nconst firstItem = items.length > 0 ? items[0].json : {};\nconst hasError = firstItem.error || firstItem.errorMessage;\nconst hasLeadId = firstItem.lead_id && firstItem.lead_id.toString().trim() !== '';\n\nif (items.length === 0 || hasError || !hasLeadId) {\n  // No lead found or error — pass empty lead_id so Is New Lead? routes to true\n  return [{ json: { lead_id: '', phone: context.normalized_phone } }];\n}\n\n// Lead found — pass through\nreturn items;"
       },
       "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
       "name": "Ensure Result",
@@ -377,7 +377,7 @@
     },
     {
       "parameters": {
-        "operation": "append",
+        "operation": "appendOrUpdate",
         "documentId": {
           "__rl": true,
           "mode": "id",
@@ -390,7 +390,8 @@
         },
         "columns": {
           "mappingMode": "autoMapInputData",
-          "value": {}
+          "value": {},
+          "matchingColumns": ["phone"]
         },
         "options": {}
       },
