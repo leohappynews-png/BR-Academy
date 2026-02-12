@@ -432,7 +432,7 @@
         },
         "sheetName": {
           "__rl": true,
-          "mode": "gid",
+          "mode": "name",
           "value": "conversation_history"
         },
         "columns": {
@@ -455,6 +455,8 @@
         3000,
         300
       ],
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput",
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "ImmGD20IqQ0YAOHZ",
