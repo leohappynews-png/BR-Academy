@@ -24,12 +24,44 @@
       "name": "Create Enrollment",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [500, 300]
+      "position": [500, 300],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nreturn [{\n  json: {\n    enrollment_id: input.enrollment_id || 'created',\n    success: true,\n    lead_id: $('When Executed by Another Workflow').first().json.lead_id,\n    student_name: $('When Executed by Another Workflow').first().json.student_name,\n    message: 'Matricula criada com sucesso'\n  }\n}];"
+      },
+      "id": "code-enrollment-ok",
+      "name": "Return Success",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [740, 180]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.N8N_WEBHOOK_BASE_URL}}/webhook/br-academy-zapi-send",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"phone\": \"{{$env.ADMIN_PHONE}}\",\n  \"message\": \"ERRO CRIACAO DE MATRICULA\\n\\nFalha ao processar matricula automaticamente.\\nIntervencao manual necessaria!\\n\\nAluno: {{ $('When Executed by Another Workflow').first().json.student_name }}\\nEmail: {{ $('When Executed by Another Workflow').first().json.student_email }}\\nTelefone: {{ $('When Executed by Another Workflow').first().json.phone }}\\nValor pago: {{ $('When Executed by Another Workflow').first().json.amount_paid }} EUR\\nData do curso: {{ $('When Executed by Another Workflow').first().json.course_date }}\\nMetodo: {{ $('When Executed by Another Workflow').first().json.payment_method }}\\nID pagamento: {{ $('When Executed by Another Workflow').first().json.payment_id }}\",\n  \"type\": \"text\"\n}",
+        "options": {}
+      },
+      "id": "http-notify-admin-error",
+      "name": "Notify Admin - Enrollment Error",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [740, 420]
     }
   ],
   "connections": {
     "When Executed by Another Workflow": {
       "main": [[{ "node": "Create Enrollment", "type": "main", "index": 0 }]]
+    },
+    "Create Enrollment": {
+      "main": [
+        [{ "node": "Return Success", "type": "main", "index": 0 }],
+        [{ "node": "Notify Admin - Enrollment Error", "type": "main", "index": 0 }]
+      ]
     }
   },
   "settings": {

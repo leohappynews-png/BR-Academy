@@ -182,7 +182,7 @@
       "typeVersion": 4.5,
       "position": [910, 200],
       "credentials": {
-        "googleSheetsOAuth2Api": { "id": "CONFIGURE_ME", "name": "Google Sheets" }
+        "googleSheetsOAuth2Api": { "id": "ImmGD20IqQ0YAOHZ", "name": "Google Sheets leohappynews@gmail" }
       }
     },
     {
@@ -208,30 +208,10 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://graph.facebook.com/v18.0/{{$env.WHATSAPP_PHONE_ID}}/messages",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "httpHeaderAuth",
+        "url": "={{$env.N8N_WEBHOOK_BASE_URL}}/webhook/br-academy-zapi-send",
         "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "messaging_product",
-              "value": "whatsapp"
-            },
-            {
-              "name": "to",
-              "value": "={{ $('Format Lead Data').item.json.phone }}"
-            },
-            {
-              "name": "type",
-              "value": "template"
-            },
-            {
-              "name": "template",
-              "value": "={{ JSON.stringify({ name: 'br_academy_welcome', language: { code: 'pt_BR' }, components: [{ type: 'body', parameters: [{ type: 'text', text: $('Format Lead Data').item.json.name }] }] }) }}"
-            }
-          ]
-        },
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"phone\": \"{{ $('Format Lead Data').item.json.phone }}\",\n  \"message\": \"Oi{{ $('Format Lead Data').item.json.name ? ' ' + $('Format Lead Data').item.json.name : '' }}! Sou a Ana da BR Academy 👋\\n\\nSomos o primeiro e maior treinamento de Bar Staff na Irlanda! Nosso curso de 2 dias vai te preparar para trabalhar em bares em Dublin rapidinho 🍹\\n\\nQuer saber mais sobre datas, preços e o que inclui?\",\n  \"type\": \"text\",\n  \"delayTyping\": 2\n}",
         "options": {}
       },
       "id": "whatsapp-welcome",
@@ -273,7 +253,7 @@
       "typeVersion": 2.1,
       "position": [1130, 620],
       "credentials": {
-        "gmailOAuth2": { "id": "CONFIGURE_ME", "name": "Gmail" }
+        "gmailOAuth2": { "id": "5yiHpJtr7bh5GfPN", "name": "Gmail account" }
       }
     },
     {
@@ -291,7 +271,7 @@
     {
       "parameters": {
         "rule": {
-          "interval": [{ "field": "minutes", "minutesInterval": 30 }]
+          "interval": [{ "field": "minutes", "minutesInterval": 5 }]
         }
       },
       "id": "schedule-instagram",

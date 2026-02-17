@@ -34,7 +34,7 @@
         "sessionIdType": "customKey",
         "sessionKey": "={{ $json.user_id }}",
         "tableName": "n8n_chat_histories_bracademy",
-        "contextWindowLength": 15
+        "contextWindowLength": 25
       },
       "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
       "typeVersion": 1.3,
@@ -43,7 +43,7 @@
       "name": "Simple Memory",
       "credentials": {
         "postgres": {
-          "id": "CONFIGURE_ME",
+          "id": "hF13tuQHk78nTOkP",
           "name": "Postgres BR Academy (Supabase)"
         }
       }
