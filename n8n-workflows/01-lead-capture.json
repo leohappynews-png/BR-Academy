@@ -211,7 +211,7 @@
         "url": "={{$env.N8N_WEBHOOK_BASE_URL}}/webhook/br-academy-zapi-send",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"phone\": \"{{ $('Format Lead Data').item.json.phone }}\",\n  \"message\": \"Oi{{ $('Format Lead Data').item.json.name ? ' ' + $('Format Lead Data').item.json.name : '' }}! Sou a Ana da BR Academy 👋\\n\\nSomos o primeiro e maior treinamento de Bar Staff na Irlanda! Nosso curso de 2 dias vai te preparar para trabalhar em bares em Dublin rapidinho 🍹\\n\\nQuer saber mais sobre datas, preços e o que inclui?\",\n  \"type\": \"text\",\n  \"delayTyping\": 2\n}",
+        "jsonBody": "={\n  \"phone\": \"{{ $('Format Lead Data').item.json.phone }}\",\n  \"message\": \"Oi{{ $('Format Lead Data').item.json.name ? ' ' + $('Format Lead Data').item.json.name : '' }}! Sou a Ana da BR Academy 👋\\n\\nSomos o primeiro e maior treinamento de Bar Staff na Irlanda! Nosso curso de 2 dias vai te preparar para trabalhar em bares em Dublin rapidinho 🍹\\n\\n💰 *Preços:*\\n• Presencial em Dublin: €150\\n• Online: €34\\n\\nQuer saber mais sobre datas, o que inclui e como se inscrever?\",\n  \"type\": \"text\",\n  \"delayTyping\": 2\n}",
         "options": {}
       },
       "id": "whatsapp-welcome",
@@ -243,8 +243,8 @@
     {
       "parameters": {
         "sendTo": "={{ $('Format Lead Data').item.json.email }}",
-        "subject": "Bem-vindo a BR Academy! \ud83c\udf1f Seu caminho para trabalhar em bares na Irlanda",
-        "message": "=<h2>Ola {{ $('Format Lead Data').item.json.name }}!</h2><p>Obrigado pelo seu interesse na <strong>BR Academy</strong> - o primeiro e maior centro de treinamento de Bar Staff na Irlanda!</p><p>Recebemos sua inscricao e estamos muito felizes em te-lo(a) conosco.</p><h3>O que voce vai aprender:</h3><ul><li>Tecnicas profissionais de bar (cocktails, cervejas, cafe)</li><li>Atendimento ao cliente em ingles</li><li>Legislacao irlandesa sobre bebidas</li><li>Como conseguir emprego rapidamente</li></ul><p>Nossa equipe entrara em contato em breve para agendar sua turma.</p><p><strong>Equipe BR Academy</strong><br>Dublin, Ireland</p>",
+        "subject": "Bem-vindo à BR Academy! 🌟 Seu caminho para trabalhar em bares na Irlanda",
+        "message": "=<h2>Olá {{ $('Format Lead Data').item.json.name }}!</h2><p>Obrigado pelo seu interesse na <strong>BR Academy</strong> — o primeiro e maior centro de treinamento de Bar Staff na Irlanda!</p><p>Recebemos sua inscrição e estamos muito felizes em tê-lo(a) conosco.</p><h3>O que você vai aprender:</h3><ul><li>Técnicas profissionais de bar (cocktails, cervejas, café)</li><li>Atendimento ao cliente em inglês</li><li>Legislação irlandesa sobre bebidas</li><li>Como conseguir emprego rapidamente</li></ul><h3>Nossos cursos:</h3><ul><li>🎓 <strong>Presencial em Dublin:</strong> €150 — curso intensivo de fim de semana (Sáb-Dom, 10h-17h)</li><li>💻 <strong>Online:</strong> €34 — aprenda no seu ritmo</li></ul><p>Nossa equipe entrará em contato em breve para agendar sua turma.</p><p><strong>Equipe BR Academy</strong><br>66 Abbey Street Middle, Dublin</p>",
         "options": {}
       },
       "id": "email-welcome",

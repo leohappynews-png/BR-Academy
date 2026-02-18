@@ -55,7 +55,7 @@
       "typeVersion": 4.5,
       "position": [720, 400],
       "credentials": {
-        "googleSheetsOAuth2Api": { "id": "CONFIGURE_ME", "name": "Google Sheets" }
+        "googleSheetsOAuth2Api": { "id": "ImmGD20IqQ0YAOHZ", "name": "Google Sheets leohappynews@gmail" }
       }
     },
     {
@@ -80,7 +80,7 @@
       "typeVersion": 4.5,
       "position": [940, 250],
       "credentials": {
-        "googleSheetsOAuth2Api": { "id": "CONFIGURE_ME", "name": "Google Sheets" }
+        "googleSheetsOAuth2Api": { "id": "ImmGD20IqQ0YAOHZ", "name": "Google Sheets leohappynews@gmail" }
       }
     },
     {
@@ -94,7 +94,7 @@
             "date": "={{ $now.format('yyyy-MM-dd') }}",
             "type": "income",
             "category": "course_enrollment",
-            "description": "=Matricula {{ $json.name }} - {{ $json.course_type }}",
+            "description": "=Matrícula {{ $json.name }} - {{ $json.course_type }}",
             "amount": "={{ $json.amount_paid }}",
             "currency": "={{ $json.currency }}",
             "payment_method": "={{ $json.payment_method }}",
@@ -112,14 +112,14 @@
       "typeVersion": 4.5,
       "position": [940, 440],
       "credentials": {
-        "googleSheetsOAuth2Api": { "id": "CONFIGURE_ME", "name": "Google Sheets" }
+        "googleSheetsOAuth2Api": { "id": "ImmGD20IqQ0YAOHZ", "name": "Google Sheets leohappynews@gmail" }
       }
     },
     {
       "parameters": {
         "sendTo": "={{ $json.email }}",
-        "subject": "BR Academy - Confirmacao de Matricula! Bem-vindo(a)!",
-        "message": "=<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'><div style='background: #1a1a2e; color: white; padding: 30px; text-align: center;'><h1>BR Academy</h1><p>Confirmacao de Matricula</p></div><div style='padding: 30px; background: #f9f9f9;'><h2>Parabens, {{ $json.name }}!</h2><p>Sua matricula foi confirmada com sucesso! Voce esta oficialmente inscrito(a) no curso de <strong>Bar Staff</strong> da BR Academy.</p><h3>Detalhes da Matricula:</h3><table style='width:100%; border-collapse: collapse;'><tr style='border-bottom: 1px solid #ddd;'><td style='padding: 8px;'><strong>ID Matricula:</strong></td><td>{{ $json.enrollment_id }}</td></tr><tr style='border-bottom: 1px solid #ddd;'><td style='padding: 8px;'><strong>Tipo de Curso:</strong></td><td>{{ $json.course_type === 'weekend' ? 'Intensivo de Fim de Semana (Sab-Dom)' : 'Noturno (Seg-Qui)' }}</td></tr><tr style='border-bottom: 1px solid #ddd;'><td style='padding: 8px;'><strong>Data do Curso:</strong></td><td>{{ $json.course_date }}</td></tr><tr style='border-bottom: 1px solid #ddd;'><td style='padding: 8px;'><strong>Valor Pago:</strong></td><td>{{ $json.currency }} {{ $json.amount_paid }}</td></tr></table><h3>Proximos Passos:</h3><ol><li>Voce recebera os documentos do curso em breve</li><li>2 dias antes, enviaremos instrucoes detalhadas</li><li>No dia, chegue 15min antes com documento de identidade</li></ol><h3>O que trazer:</h3><ul><li>Documento de identidade (passaporte ou IRP card)</li><li>Caderno e caneta</li><li>Roupa confortavel (sapato fechado obrigatorio)</li></ul><p>Qualquer duvida, estamos a disposicao!</p></div><div style='background: #1a1a2e; color: white; padding: 15px; text-align: center;'><p>BR Academy | Dublin, Ireland</p></div></div>",
+        "subject": "BR Academy - Confirmação de Matrícula! Bem-vindo(a)!",
+        "message": "=<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'><div style='background: #1a1a2e; color: white; padding: 30px; text-align: center;'><h1>BR Academy</h1><p>Confirmação de Matrícula</p></div><div style='padding: 30px; background: #f9f9f9;'><h2>Parabéns, {{ $json.name }}!</h2><p>Sua matrícula foi confirmada com sucesso! Você está oficialmente inscrito(a) no curso de <strong>Bar Staff</strong> da BR Academy.</p><h3>Detalhes da Matrícula:</h3><table style='width:100%; border-collapse: collapse;'><tr style='border-bottom: 1px solid #ddd;'><td style='padding: 8px;'><strong>ID Matrícula:</strong></td><td>{{ $json.enrollment_id }}</td></tr><tr style='border-bottom: 1px solid #ddd;'><td style='padding: 8px;'><strong>Tipo de Curso:</strong></td><td>{{ $json.course_type === 'weekend' ? 'Intensivo de Fim de Semana (Sáb-Dom)' : 'Noturno (Seg-Qui)' }}</td></tr><tr style='border-bottom: 1px solid #ddd;'><td style='padding: 8px;'><strong>Data do Curso:</strong></td><td>{{ $json.course_date }}</td></tr><tr style='border-bottom: 1px solid #ddd;'><td style='padding: 8px;'><strong>Valor Pago:</strong></td><td>{{ $json.currency }} {{ $json.amount_paid }}</td></tr></table><h3>Próximos Passos:</h3><ol><li>Você receberá os documentos do curso em breve</li><li>2 dias antes, enviaremos instruções detalhadas</li><li>No dia, chegue 15min antes com documento de identidade</li></ol><h3>O que trazer:</h3><ul><li>Documento de identidade (passaporte ou IRP card)</li><li>Caderno e caneta</li><li>Roupa confortável (sapato fechado obrigatório)</li></ul><p>Qualquer dúvida, estamos à disposição!</p></div><div style='background: #1a1a2e; color: white; padding: 15px; text-align: center;'><p>BR Academy | Dublin, Ireland</p></div></div>",
         "options": {}
       },
       "id": "email-enrollment-confirmation",
@@ -128,7 +128,7 @@
       "typeVersion": 2.1,
       "position": [940, 630],
       "credentials": {
-        "gmailOAuth2": { "id": "CONFIGURE_ME", "name": "Gmail" }
+        "gmailOAuth2": { "id": "5yiHpJtr7bh5GfPN", "name": "Gmail account" }
       }
     },
     {
@@ -137,7 +137,7 @@
         "url": "={{$env.N8N_WEBHOOK_BASE_URL}}/webhook/br-academy-zapi-send",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"phone\": \"{{ $json.phone }}\",\n  \"message\": \"Oi {{ $json.name }}! Sua matricula na BR Academy foi CONFIRMADA! \\n\\nID: {{ $json.enrollment_id }}\\nCurso: {{ $json.course_type === 'weekend' ? 'Fim de Semana' : 'Noturno' }}\\nData: {{ $json.course_date }}\\n\\nVoce vai receber os documentos e instrucoes por email.\\n\\nBem-vindo(a) a familia BR Academy! Estamos ansiosos para te receber!\",\n  \"type\": \"text\",\n  \"delayTyping\": 8\n}",
+        "jsonBody": "={\n  \"phone\": \"{{ $json.phone }}\",\n  \"message\": \"Oi {{ $json.name }}! Sua matrícula na BR Academy foi CONFIRMADA! \\n\\nID: {{ $json.enrollment_id }}\\nCurso: {{ $json.course_type === 'weekend' ? 'Fim de Semana' : 'Noturno' }}\\nData: {{ $json.course_date }}\\n\\nVocê vai receber os documentos e instruções por email.\\n\\nBem-vindo(a) à família BR Academy! Estamos ansiosos para te receber!\",\n  \"type\": \"text\",\n  \"delayTyping\": 8\n}",
         "options": {}
       },
       "id": "whatsapp-enrollment-confirm",
@@ -149,11 +149,11 @@
     {
       "parameters": {
         "operation": "create",
-        "calendar": { "__rl": true, "mode": "id", "value": "CONFIGURE_ME_CALENDAR" },
+        "calendar": { "__rl": true, "mode": "id", "value": "74c4f8a1d332e20247b82fdcb0642ace009b736af0a7b880944a8ccc5d1b8b63@group.calendar.google.com" },
         "summary": "=BR Academy - {{ $json.name }} - Curso {{ $json.course_type }}",
         "description": "=Aluno: {{ $json.name }}\nEmail: {{ $json.email }}\nTelefone: {{ $json.phone }}\nEnrollment ID: {{ $json.enrollment_id }}\nTipo: {{ $json.course_type }}",
-        "start": "={{ $json.course_date }}",
-        "end": "={{ $json.course_date }}",
+        "start": "={{ $json.course_type === 'weekend' ? $json.course_date + 'T10:00:00' : $json.course_date + 'T18:00:00' }}",
+        "end": "={{ $json.course_type === 'weekend' ? $json.course_date + 'T17:00:00' : $json.course_date + 'T21:00:00' }}",
         "options": {
           "attendees": ["={{ $json.email }}"]
         }
@@ -182,8 +182,8 @@
     {
       "parameters": {
         "sendTo": "leohappynews@gmail.com",
-        "subject": "=Nova Matricula! {{ $json.name }} - {{ $json.enrollment_id }}",
-        "message": "=<h2>Nova Matricula Confirmada!</h2><p><strong>{{ $json.name }}</strong> acaba de se matricular!</p><table><tr><td>Enrollment ID:</td><td>{{ $json.enrollment_id }}</td></tr><tr><td>Curso:</td><td>{{ $json.course_type }}</td></tr><tr><td>Data:</td><td>{{ $json.course_date }}</td></tr><tr><td>Valor:</td><td>{{ $json.currency }} {{ $json.amount_paid }}</td></tr><tr><td>Pagamento:</td><td>{{ $json.payment_method }} ({{ $json.payment_status }})</td></tr></table>",
+        "subject": "=Nova Matrícula! {{ $json.name }} - {{ $json.enrollment_id }}",
+        "message": "=<h2>Nova Matrícula Confirmada!</h2><p><strong>{{ $json.name }}</strong> acaba de se matricular!</p><table><tr><td>Enrollment ID:</td><td>{{ $json.enrollment_id }}</td></tr><tr><td>Curso:</td><td>{{ $json.course_type }}</td></tr><tr><td>Data:</td><td>{{ $json.course_date }}</td></tr><tr><td>Valor:</td><td>{{ $json.currency }} {{ $json.amount_paid }}</td></tr><tr><td>Pagamento:</td><td>{{ $json.payment_method }} ({{ $json.payment_status }})</td></tr></table>",
         "options": {}
       },
       "id": "email-admin-new-enrollment",
@@ -192,7 +192,7 @@
       "typeVersion": 2.1,
       "position": [1160, 630],
       "credentials": {
-        "gmailOAuth2": { "id": "CONFIGURE_ME", "name": "Gmail" }
+        "gmailOAuth2": { "id": "5yiHpJtr7bh5GfPN", "name": "Gmail account" }
       }
     }
   ],

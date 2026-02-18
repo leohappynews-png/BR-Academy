@@ -4,7 +4,7 @@
     {
       "parameters": {
         "pollTimes": {
-          "item": [{ "mode": "everyMinute" }]
+          "item": [{ "mode": "everyX", "value": 5, "unit": "minutes" }]
         },
         "filters": {
           "readStatus": "unread",
@@ -21,8 +21,8 @@
       "name": "Gmail - New Email",
       "credentials": {
         "gmailOAuth2": {
-          "id": "CONFIGURE_ME",
-          "name": "Gmail BR Academy"
+          "id": "5yiHpJtr7bh5GfPN",
+          "name": "Gmail account"
         }
       }
     },
@@ -115,14 +115,14 @@
       "name": "Check Lead by Email",
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "CONFIGURE_ME",
-          "name": "Google Sheets"
+          "id": "ImmGD20IqQ0YAOHZ",
+          "name": "Google Sheets leohappynews@gmail"
         }
       }
     },
     {
       "parameters": {
-        "jsCode": "const email = $('Parse Email').first().json;\nconst leadResults = $('Check Lead by Email').all();\nconst leadData = leadResults.length > 0 ? leadResults[0].json : null;\n\nconst isNewLead = !leadData || !leadData.lead_id;\n\nreturn [{\n  json: {\n    lead_id: isNewLead ? `lead_email_${Date.now()}` : leadData.lead_id,\n    phone: leadData?.phone || '',\n    name: leadData?.lead_name || leadData?.name || email.sender_name,\n    stage: leadData?.lead_stage || leadData?.stage || 'new_lead',\n    score: leadData?.lead_score || leadData?.score || 0,\n    message: `[EMAIL RECEBIDO]\\n${email.full_message}`,\n    message_type: 'email',\n    is_new_lead: isNewLead,\n    channel: 'email',\n    sender_email: email.sender_email,\n    subject: email.subject\n  }\n}];"
+        "jsCode": "const email = $('Parse Email').first().json;\nconst leadResults = $('Check Lead by Email').all();\nconst leadData = leadResults.length > 0 ? leadResults[0].json : null;\n\nconst isNewLead = !leadData || !leadData.lead_id;\n\nreturn [{\n  json: {\n    lead_id: isNewLead ? `lead_email_${Date.now()}_${Math.random().toString(36).slice(2, 6)}` : leadData.lead_id,\n    phone: leadData?.phone || '',\n    name: leadData?.lead_name || leadData?.name || email.sender_name,\n    stage: leadData?.lead_stage || leadData?.stage || 'new_lead',\n    score: leadData?.lead_score || leadData?.score || 0,\n    message: `[EMAIL RECEBIDO]\\n${email.full_message}`,\n    message_type: 'email',\n    is_new_lead: isNewLead,\n    channel: 'email',\n    sender_email: email.sender_email,\n    subject: email.subject\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -196,8 +196,8 @@
       "name": "Auto-Register Email Lead",
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "CONFIGURE_ME",
-          "name": "Google Sheets"
+          "id": "ImmGD20IqQ0YAOHZ",
+          "name": "Google Sheets leohappynews@gmail"
         }
       }
     },
@@ -259,8 +259,8 @@
       "name": "Save Email to History",
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "CONFIGURE_ME",
-          "name": "Google Sheets"
+          "id": "ImmGD20IqQ0YAOHZ",
+          "name": "Google Sheets leohappynews@gmail"
         }
       }
     }
