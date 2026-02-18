@@ -267,42 +267,6 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [1350, 300]
-    },
-    {
-      "parameters": {
-        "rule": {
-          "interval": [{ "field": "minutes", "minutesInterval": 5 }]
-        }
-      },
-      "id": "schedule-instagram",
-      "name": "Schedule - Check Instagram",
-      "type": "n8n-nodes-base.scheduleTrigger",
-      "typeVersion": 1.2,
-      "position": [250, 700]
-    },
-    {
-      "parameters": {
-        "method": "GET",
-        "url": "=https://graph.facebook.com/v18.0/{{$env.INSTAGRAM_BUSINESS_ID}}/conversations?fields=participants,messages{message,from,created_time}&platform=instagram",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "httpHeaderAuth",
-        "options": {}
-      },
-      "id": "instagram-fetch-dms",
-      "name": "Instagram - Fetch DMs",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [470, 700]
-    },
-    {
-      "parameters": {
-        "jsCode": "// Process Instagram DMs and extract potential leads\nconst conversations = $input.all();\nconst leads = [];\nconst keywords = ['curso', 'course', 'treinamento', 'training', 'bar', 'trabalho', 'work', 'preco', 'price', 'quanto', 'how much', 'quando', 'when', 'vaga', 'emprego', 'job'];\n\nfor (const conv of conversations) {\n  const messages = conv.json?.messages?.data || [];\n  for (const msg of messages) {\n    const text = (msg.message || '').toLowerCase();\n    const hasKeyword = keywords.some(kw => text.includes(kw));\n    if (hasKeyword) {\n      leads.push({\n        json: {\n          name: msg.from?.name || 'Instagram Lead',\n          source: 'instagram',\n          phone: '',\n          email: '',\n          message: msg.message,\n          nationality: '',\n          visa_type: '',\n          english_level: '',\n          preferred_date: '',\n          instagram_id: msg.from?.id || ''\n        }\n      });\n    }\n  }\n}\n\nreturn leads.length > 0 ? leads : [{ json: { skip: true } }];"
-      },
-      "id": "code-parse-instagram",
-      "name": "Parse Instagram Leads",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [690, 700]
     }
   ],
   "connections": {
@@ -336,21 +300,6 @@
       "main": [
         [{ "node": "Gmail - Welcome Email", "type": "main", "index": 0 }],
         []
-      ]
-    },
-    "Schedule - Check Instagram": {
-      "main": [
-        [{ "node": "Instagram - Fetch DMs", "type": "main", "index": 0 }]
-      ]
-    },
-    "Instagram - Fetch DMs": {
-      "main": [
-        [{ "node": "Parse Instagram Leads", "type": "main", "index": 0 }]
-      ]
-    },
-    "Parse Instagram Leads": {
-      "main": [
-        [{ "node": "Validate Source", "type": "main", "index": 0 }]
       ]
     }
   },
