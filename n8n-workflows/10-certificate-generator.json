@@ -1,0 +1,236 @@
+{
+  "name": "BR Academy - 10 Certificate Generator",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "hours", "hoursInterval": 4 }]
+        }
+      },
+      "id": "schedule-cert-check",
+      "name": "Schedule - Certificate Check",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": { "__rl": true, "mode": "id", "value": "={{$env.GOOGLE_SHEET_ENROLLMENT_ID}}" },
+        "sheetName": { "__rl": true, "mode": "gid", "value": "0" },
+        "options": {}
+      },
+      "id": "sheets-get-enrollments",
+      "name": "Get All Enrollments",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [470, 300],
+      "credentials": {
+        "googleSheetsOAuth2Api": { "id": "ImmGD20IqQ0YAOHZ", "name": "Google Sheets leohappynews@gmail" }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Filtrar alunos elegiveis para receber certificado\nconst enrollments = $input.all();\nconst eligible = [];\n\n// IMPORTANTE: Substitua pelo ID real do seu template Google Slides\n// O ID e o codigo na URL: https://docs.google.com/presentation/d/ESTE_ID_AQUI/edit\nconst TEMPLATE_ID = '15N7nRI7BkQeVm9YDiQRmYkjAulmtw9zVYqpgIigx8nE';\n\nfor (const enrollment of enrollments) {\n  const data = enrollment.json;\n\n  // Verificar se certificado ja foi enviado\n  const certSent = String(data.certificate_sent || '').toLowerCase();\n  if (certSent === 'true' || certSent === 'yes' || certSent === '1') continue;\n\n  // Verificar elegibilidade: curso concluido OU presenca confirmada\n  const isCompleted = String(data.status || '').toLowerCase() === 'completed';\n  const isPresent = String(data.attendance || '').toLowerCase() === 'present';\n  if (!isCompleted && !isPresent) continue;\n\n  // Validar campos obrigatorios\n  if (!data.name || !data.email) continue;\n\n  // Formatar data do curso para o certificado (ex: \"15 de Fevereiro de 2026\")\n  const courseDate = new Date(data.course_date);\n  const meses = [\n    'Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho',\n    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'\n  ];\n  const dataFormatada = courseDate.getDate() + ' de ' +\n    meses[courseDate.getMonth()] + ' de ' + courseDate.getFullYear();\n\n  // Gerar ID do certificado: CERT-YYYYMMDD-ENROLLID\n  const certDate = courseDate.getFullYear() +\n    String(courseDate.getMonth() + 1).padStart(2, '0') +\n    String(courseDate.getDate()).padStart(2, '0');\n  const certId = 'CERT-' + certDate + '-' + (data.enrollment_id || 'NA');\n\n  eligible.push({\n    json: {\n      enrollment_id: data.enrollment_id,\n      lead_id: data.lead_id,\n      name: data.name,\n      email: data.email,\n      phone: data.phone || '',\n      course_date: data.course_date,\n      course_type: data.course_type,\n      formatted_date: dataFormatada,\n      certificate_id: certId,\n      template_id: TEMPLATE_ID\n    }\n  });\n}\n\nreturn eligible.length > 0 ? eligible : [{ json: { skip: true, count: 0 } }];"
+      },
+      "id": "code-filter-eligible",
+      "name": "Filter Eligible Students",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [690, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.skip }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "notEquals" }
+            }
+          ]
+        }
+      },
+      "id": "filter-has-eligible",
+      "name": "Has Eligible Students?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [910, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://www.googleapis.com/drive/v3/files/{{ $json.template_id }}/copy",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleSlidesOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"name\": \"Certificado - {{ $json.name }} - {{ $json.enrollment_id }}\"\n}",
+        "options": {}
+      },
+      "id": "http-copy-template",
+      "name": "Copy Slides Template",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1130, 300],
+      "credentials": {
+        "googleSlidesOAuth2Api": { "id": "CONFIGURE_GOOGLE_SLIDES_OAUTH2", "name": "Google Slides OAuth2" }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://slides.googleapis.com/v1/presentations/{{ $json.id }}/batchUpdate",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleSlidesOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"requests\": [\n    {\n      \"replaceAllText\": {\n        \"containsText\": { \"text\": \"{{full name}}\", \"matchCase\": false },\n        \"replaceText\": \"{{ $('Filter Eligible Students').item.json.name }}\"\n      }\n    },\n    {\n      \"replaceAllText\": {\n        \"containsText\": { \"text\": \"{{date}}\", \"matchCase\": false },\n        \"replaceText\": \"{{ $('Filter Eligible Students').item.json.formatted_date }}\"\n      }\n    },\n    {\n      \"replaceAllText\": {\n        \"containsText\": { \"text\": \"{{certificate id}}\", \"matchCase\": false },\n        \"replaceText\": \"{{ $('Filter Eligible Students').item.json.certificate_id }}\"\n      }\n    }\n  ]\n}",
+        "options": {}
+      },
+      "id": "http-replace-placeholders",
+      "name": "Replace Placeholders",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1350, 300],
+      "credentials": {
+        "googleSlidesOAuth2Api": { "id": "CONFIGURE_GOOGLE_SLIDES_OAUTH2", "name": "Google Slides OAuth2" }
+      }
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://www.googleapis.com/drive/v3/files/{{ $('Copy Slides Template').item.json.id }}/export?mimeType=application/pdf",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleSlidesOAuth2Api",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "data"
+            }
+          }
+        }
+      },
+      "id": "http-export-pdf",
+      "name": "Export as PDF",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1570, 300],
+      "credentials": {
+        "googleSlidesOAuth2Api": { "id": "CONFIGURE_GOOGLE_SLIDES_OAUTH2", "name": "Google Slides OAuth2" }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Filter Eligible Students').item.json.email }}",
+        "subject": "Parabens pela conclusao! Seu Certificado BR Academy",
+        "message": "=<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'><div style='background: #1a1a2e; color: white; padding: 30px; text-align: center;'><h1 style='margin: 0;'>Parabens!</h1><p style='margin: 10px 0 0;'>Voce concluiu o curso de Bar Staff!</p></div><div style='padding: 30px; background: #ffffff;'><h2>{{ $('Filter Eligible Students').item.json.name }}, voce conseguiu!</h2><p>Parabens por completar o treinamento de Bar Staff da BR Academy!</p><h3>Seu certificado esta em anexo.</h3><p>Baixe o PDF e salve em um local seguro.</p><h3>Proximos Passos para Conseguir Emprego:</h3><ol><li><strong>Atualize seu CV</strong> - Adicione o certificado e as habilidades aprendidas</li><li><strong>LinkedIn</strong> - Atualize seu perfil e conecte com a BR Academy</li><li><strong>Visite pubs pessoalmente</strong> - Melhor horario: Ter-Qui, 14h-16h</li><li><strong>Use nosso networking</strong> - Vamos te adicionar ao grupo de ex-alunos</li></ol><h3>Programa de Indicacao:</h3><p>Indique um amigo para o curso e voces dois ganham <strong>10% de desconto</strong> na proxima formacao!</p><p>Voce agora faz parte da familia BR Academy. Sucesso na sua jornada!</p></div><div style='background: #1a1a2e; color: white; padding: 15px; text-align: center;'><p style='margin: 0;'>BR Academy | Dublin, Ireland</p></div></div>",
+        "options": {
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {
+                "property": "data"
+              }
+            ]
+          },
+          "appendAttribution": false
+        }
+      },
+      "id": "email-certificate",
+      "name": "Gmail - Send Certificate",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [1790, 300],
+      "credentials": {
+        "gmailOAuth2": { "id": "5yiHpJtr7bh5GfPN", "name": "Gmail account" }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": { "__rl": true, "mode": "id", "value": "={{$env.GOOGLE_SHEET_ENROLLMENT_ID}}" },
+        "sheetName": { "__rl": true, "mode": "gid", "value": "0" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "enrollment_id": "={{ $('Filter Eligible Students').item.json.enrollment_id }}",
+            "certificate_sent": "true",
+            "status": "completed"
+          },
+          "matchingColumns": ["enrollment_id"]
+        },
+        "options": {}
+      },
+      "id": "sheets-update-cert-sent",
+      "name": "Update Certificate Sent",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [2010, 200],
+      "credentials": {
+        "googleSheetsOAuth2Api": { "id": "ImmGD20IqQ0YAOHZ", "name": "Google Sheets leohappynews@gmail" }
+      }
+    },
+    {
+      "parameters": {
+        "method": "DELETE",
+        "url": "=https://www.googleapis.com/drive/v3/files/{{ $('Copy Slides Template').item.json.id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleSlidesOAuth2Api",
+        "options": {}
+      },
+      "id": "http-delete-temp-slides",
+      "name": "Delete Temp Slides",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2010, 400],
+      "credentials": {
+        "googleSlidesOAuth2Api": { "id": "CONFIGURE_GOOGLE_SLIDES_OAUTH2", "name": "Google Slides OAuth2" }
+      },
+      "settings": {
+        "onError": "continueRegularOutput"
+      }
+    }
+  ],
+  "connections": {
+    "Schedule - Certificate Check": {
+      "main": [[{ "node": "Get All Enrollments", "type": "main", "index": 0 }]]
+    },
+    "Get All Enrollments": {
+      "main": [[{ "node": "Filter Eligible Students", "type": "main", "index": 0 }]]
+    },
+    "Filter Eligible Students": {
+      "main": [[{ "node": "Has Eligible Students?", "type": "main", "index": 0 }]]
+    },
+    "Has Eligible Students?": {
+      "main": [
+        [{ "node": "Copy Slides Template", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Copy Slides Template": {
+      "main": [[{ "node": "Replace Placeholders", "type": "main", "index": 0 }]]
+    },
+    "Replace Placeholders": {
+      "main": [[{ "node": "Export as PDF", "type": "main", "index": 0 }]]
+    },
+    "Export as PDF": {
+      "main": [[{ "node": "Gmail - Send Certificate", "type": "main", "index": 0 }]]
+    },
+    "Gmail - Send Certificate": {
+      "main": [[
+        { "node": "Update Certificate Sent", "type": "main", "index": 0 },
+        { "node": "Delete Temp Slides", "type": "main", "index": 0 }
+      ]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    { "name": "BR Academy" },
+    { "name": "Certificate" },
+    { "name": "Course Operations" }
+  ]
+}

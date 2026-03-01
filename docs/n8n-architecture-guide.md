@@ -148,6 +148,15 @@ Pagamento confirmado               A cada 8 horas
 - **Escreve em:** Google Sheets Financial (aba "reports" - snapshot)
 - **Le de:** Google Sheets Financial + Google Sheets Leads
 
+### Workflow 10: Certificate Generator
+- **Arquivo:** `10-certificate-generator.json`
+- **Tipo de trigger:** Schedule (a cada 4 horas)
+- **Quando roda:** 6x por dia automaticamente
+- **O que faz:** Le matriculas -> Filtra alunos que concluiram sem certificado -> Copia template Google Slides -> Substitui placeholders ({{full name}}, {{date}}, {{certificate id}}) -> Exporta PDF -> Envia por email -> Marca certificate_sent=true -> Apaga copia temporaria
+- **Escreve em:** Google Sheets Enrollment (atualiza certificate_sent)
+- **Le de:** Google Sheets Enrollment
+- **APIs extras:** Google Slides API (batchUpdate), Google Drive API (copy, export, delete)
+
 ---
 
 ## Passo a Passo: Como Importar no n8n
@@ -229,6 +238,11 @@ Workflow 05 - Course Operations:
   - Gmail OAuth2          (2 nodes)
   - HTTP Header Auth      (7 nodes WhatsApp - um para cada momento)
 
+Workflow 10 - Certificate Generator:
+  - Google Sheets OAuth2  (2 nodes - leitura e atualizacao de matriculas)
+  - Gmail OAuth2          (1 node - envio do certificado com PDF)
+  - Google Slides OAuth2  (4 nodes HTTP - copiar template, substituir texto, exportar PDF, deletar copia)
+
 Workflow 06 - Financial Reports:
   - Google Sheets OAuth2  (5 nodes)
   - Gmail OAuth2          (2 nodes)
@@ -241,12 +255,13 @@ Workflow 06 - Financial Reports:
 **IMPORTANTE:** Ative os workflows nesta ordem:
 
 ```
-1. Primeiro: 01 Lead Capture     (para comecar a receber leads)
-2. Segundo:  02 Lead Pipeline    (para qualificar os leads que entram)
-3. Terceiro: 03 Sales Agent      (para conversar com leads qualificados)
-4. Quarto:   04 Enrollment       (para processar matriculas)
-5. Quinto:   05 Course Operations (para automatizar comunicacao do curso)
-6. Sexto:    06 Financial Reports (para gerar relatorios)
+1. Primeiro:  01 Lead Capture       (para comecar a receber leads)
+2. Segundo:   02 Lead Pipeline      (para qualificar os leads que entram)
+3. Terceiro:  03 Sales Agent        (para conversar com leads qualificados)
+4. Quarto:    04 Enrollment         (para processar matriculas)
+5. Quinto:    05 Course Operations  (para automatizar comunicacao do curso)
+6. Sexto:     06 Financial Reports  (para gerar relatorios)
+7. Setimo:    10 Certificate Generator (para gerar e enviar certificados)
 ```
 
 Para ativar: no editor do workflow, clique no toggle **"Active"** no canto
@@ -296,6 +311,7 @@ Quando considerar sub-workflows:
 |  | 04 BR Academy - Enrollment         | ACTIVE |          |
 |  | 05 BR Academy - Course Operations  | ACTIVE |          |
 |  | 06 BR Academy - Financial Reports  | ACTIVE |          |
+|  | 10 BR Academy - Certificate Generator| ACTIVE |          |
 |  +------------------------------------+--------+          |
 |                                                           |
 |  Cada um aparece como uma linha separada.                 |

@@ -57,9 +57,12 @@
                                                |     |     |     |     |     |
                                              -7d   -2d   -1d   Day   +1d   +7d  +30d
                                                |     |     |     |     |     |     |
-                                              WA   WA+   WA    WA   WA+   WA    WA
-                                                   Email            Email
-                                                                  (cert)
+                                              WA   WA+   WA    WA    WA    WA    WA
+                                                   Email
+                                                                     |
+                                                                     v
+                                                        [10 Certificate Generator]
+                                                      (Slides -> PDF -> Email cert)
                                                                      |
                                                                      v
                                                            [06 Financial Reports]
@@ -132,8 +135,20 @@
 | n8n (Code) | n8n | Internal | Categoriza por timeline |
 | n8n | WhatsApp API | POST /messages | Lembretes (7d/2d/1d/dia/+1/+7/+30) |
 | n8n | Gmail API | Send Email | Instrucoes pre-curso |
-| n8n | Gmail API | Send Email | Certificado pos-curso |
 | n8n | Google Sheets (Leads) | Update Row | Atualiza stage |
+
+### Workflow 10: Certificate Generator
+
+| De | Para | Metodo | Dados |
+|----|------|--------|-------|
+| n8n (Schedule 4h) | Google Sheets | Read Rows | Todas as matriculas |
+| n8n (Code) | n8n | Internal | Filtra elegiveis (completed + certificate_sent=false) |
+| n8n | Google Drive API | POST /files/{id}/copy | Copia template Google Slides |
+| n8n | Google Slides API | POST /presentations/{id}/batchUpdate | Substitui {{full name}}, {{date}}, {{certificate id}} |
+| n8n | Google Drive API | GET /files/{id}/export?mimeType=pdf | Exporta apresentacao como PDF |
+| n8n | Gmail API | Send Email + Attachment | Envia certificado PDF por email |
+| n8n | Google Sheets (Enrollment) | Update Row | Marca certificate_sent=true |
+| n8n | Google Drive API | DELETE /files/{id} | Remove copia temporaria |
 
 ### Workflow 06: Financial Reports
 
@@ -159,6 +174,8 @@
 | Google Calendar API | calendar.googleapis.com/v3 | OAuth 2.0 | 1M req/day |
 | OpenAI API | api.openai.com/v1 | API Key | Varies by plan |
 | Stripe API | api.stripe.com/v1 | API Key | 100 req/s |
+| Google Slides API | slides.googleapis.com/v1 | OAuth 2.0 | 300 req/min |
+| Google Drive API | www.googleapis.com/drive/v3 | OAuth 2.0 | 12000 req/min |
 
 ---
 

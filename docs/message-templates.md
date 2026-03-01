@@ -246,6 +246,8 @@ Chegue 15 minutos antes para o check-in.
 
 ### 16. Certificado e Proximos Passos
 **Assunto:** Parabens pela conclusao! Seu Certificado BR Academy
+**Enviado por:** Workflow 10 - Certificate Generator (com PDF em anexo)
+**Template Google Slides:** Placeholders `{{full name}}`, `{{date}}`, `{{certificate id}}`
 
 ```
 {name}, voce conseguiu!
@@ -253,6 +255,7 @@ Chegue 15 minutos antes para o check-in.
 Parabens por completar o treinamento de Bar Staff da BR Academy!
 
 Seu certificado esta em anexo.
+Baixe o PDF e salve em um local seguro.
 
 Proximos passos:
 1. Atualize seu CV com o certificado
@@ -262,8 +265,6 @@ Proximos passos:
 
 Programa de Indicacao:
 Indique um amigo e voces dois ganham 10% de desconto!
-
-Avaliacao: [link]
 ```
 
 ---
